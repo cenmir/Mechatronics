@@ -48,6 +48,7 @@ There is also a **clamp meter** available in the lab (ask the instructor). A cla
 3. **Measure** the voltage across the resistor and the voltage across the LED separately. Do they sum to 12V? (Kirchhoff's Voltage Law)
 4. **Calculate** the power dissipated by the resistor ($P = I^2 R$). Is it within the resistor's rating (typically 0.25W)?
 5. Try different resistor values (470Ω, 1kΩ, 10kΩ). Observe how brightness changes with current.
+6. Simulate the circuit in Falstad's online simulator. Compare the simulated current and voltage values with your measurements.
 
 ## Questions
 

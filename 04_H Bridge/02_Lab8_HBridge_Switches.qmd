@@ -17,7 +17,7 @@ canvas:
 
 ## Background
 
-Read the [H-Bridge Theory](../04_H_Bridge/01_HBridge_Theory.qmd) page before starting this lab.
+Read the [H-Bridge Theory](01_HBridge_Theory.qmd) page before starting this lab.
 
 In this lab you replace the MOSFETs with manual push-button switches to build intuition for how the H-bridge works. This is a conceptual exercise before you build the electronic version in Lab 9.
 

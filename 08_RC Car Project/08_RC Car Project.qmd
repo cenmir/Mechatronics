@@ -1,17 +1,28 @@
 ---
 title: "RC Car Project"
 canvas:
-  type: page
+  type: assignment
   published: true
+  assignment_group: "Project"
+  points_possible: 5
+  grading_type: "letter_grade"
+  grading_standard_id: 7051
+  submission_types: ["online_upload"]
+  allowed_extensions: ["pptx", "zip"]
+  group_assignment: true
 ---
 
 # Overview
 
-You will design and build a remote-controlled car from scratch. The car is powered by a 775 DC motor, steered by a servo, and controlled wirelessly via your phone or a physical handheld remote. You will 3D-print the chassis, gears, and wheels, solder the electronics, and write all the code.
+![](graphics/20260322162835.png)
+
+You will design and build a remote-controlled car from scratch. The car is powered by a 775 DC motor, steered by a servo, and controlled wirelessly via your phone and/or a physical handheld remote. You will 3D-print the chassis, gears, and wheels, solder the electronics, and write all the code.
 
 This is not just a mechatronics project — the car follows you through several courses in your programme. Decisions you make now affect what you analyze later.
 
 For inspiration, check out [Duke Doks' DKS Pro chassis build](https://dukedoks.com/portfolio/guia-chasis-dks-pro/) (enable English translation). There are many more builds on YouTube — search for "3D printed RC car" to explore different approaches to chassis design, suspension, and drivetrain.
+
+A good starting point is Duke's design, I have bought the same bearings and springs, he has some nice design features (like reinforced axels). However, you are free to design your own chassis and drivetrain. The key is to follow good design principles for 3D printing and mechanical design, and to meet the functional requirements without relying on ready made RC car parts.
 
 # Requirements
 
@@ -35,9 +46,11 @@ The ESP32 creates a WiFi access point. Connect with your phone, open a web page 
 
 ### 2. Physical Handheld Remote (prototype now, completed in Peter's course)
 
-A dedicated controller built with a XIAO ESP32, one or two joystick modules, and a 1S LiPo battery (the XIAO has built-in charging). A switch toggles between the XIAO and the battery/programming terminal. Communication with the car uses ESP-NOW, a fast low-latency protocol that needs no WiFi network.
+A dedicated controller built with a XIAO ESP32, one or two joystick modules, and a 1S LiPo battery (the XIAO has built-in charging). A switch toggles the battery terminal of the XIAO. Communication with the car uses ESP-NOW, a fast low-latency protocol that needs no WiFi network.
 
 The physical remote will be a formal part of **Peter's course after the summer**. However, you should start thinking about the electronics now and make a rough prototype during this course. The ESP-NOW communication lab (Lab 14) gives you the foundation. Both control methods coexist: the car listens for ESP-NOW and WebSocket messages simultaneously.
+
+One option is to enable the physical remote to hold the phone making the phone display the telemetry. This way, you can have the best of both worlds: the tactile control of a physical remote and the rich feedback of a phone interface.
 
 ## Throttle and Braking Logic
 
@@ -79,7 +92,9 @@ Think carefully about:
 The 775 motor spins at high RPM and low torque — you need gear reduction to drive the wheels. Options:
 
 - **Belt drive**: Belts are available in the lab supply. Simple, quiet, and forgiving of slight misalignment.
-- **3D-printed gears**: If you choose printed gears, use **herringbone gear design**. Herringbone gears cancel axial thrust forces and run smoother than spur gears. Design for module 2–3.
+![](graphics/20260322161504.png)
+- **3D-printed gears**: If you choose printed gears, use **herringbone gear design**. Herringbone gears cancel axial thrust forces and run smoother than spur gears. 
+![](graphics/20260322162725.png)
 - **Combination**: Belt from motor to a jackshaft, then gears to the axle.
 
 There is **no formal requirement for the car to be 4WD** — a simple rear-wheel drive with a single motor is perfectly acceptable. However, if you want to explore differentials or 4WD, you are free to do so.
@@ -99,7 +114,7 @@ Print wheel rims in **PLA** and tires in **TPU** for traction and shock absorpti
 - **PLA**: Default material for most parts — stiff, easy to print, good dimensional accuracy
 - **PETG**: For parts where some flexibility and layer adhesion strength is preferred over PLA's stiffness
 - **Carbon fibre reinforced polycarbonate (CF-PC)**: For critical structural parts that need impact resistance and toughness (motor mounts, suspension arms, gear housings)
-- **TPU**: For tires — flexible, high grip, absorbs vibration
+- **TPU**: For tires — flexible, high grip, absorbs vibration. Printed without top and bottom layers using gyroid infill 5-20% for maximum flexibility
 
 **Printing with anything other than PLA requires training by Mirza.** Contact Mirza before printing in PETG, CF-PC, or TPU. In later courses on material mechanics, you will analyze how material choice affects structural performance.
 
@@ -145,17 +160,35 @@ Print wheel rims in **PLA** and tires in **TPU** for traction and shock absorpti
 
 # Deliverables
 
+## Submission
+
+Upload the following files to this assignment **before** your presentation slot:
+
+1. **Presentation (`.pptx`)** — a PowerPoint presentation covering:
+   - System overview (block diagram of electronics, mechanical layout)
+   - Design decisions and trade-offs
+   - Challenges faced and how you solved them
+   - A short demo video (embedded or linked)
+
+2. **Project archive (`.zip`)** — a zip file containing **all** project files:
+   - Source code (PlatformIO project folder)
+   - CAD files (STEP, STL, Fusion 360 project, or equivalent)
+   - Wiring diagrams or schematics
+   - Any other documentation (photos, test data, BOM)
+
+Keep your files well-organized with a clear folder structure. Name the zip `GroupNN_RC_Car.zip`.
+
 ## Demonstration (Week 22, Thursday + Friday)
 
 1. **Drive the car.** Show it running under phone control. Demonstrate forward, reverse, braking, and steering.
-2. **Explain the design.** Walk through the electronics, mechanical design, and code.
+2. **Explain the design.** Walk through the electronics, mechanical design, and code using your presentation.
 3. **Answer questions.** The examiner randomly selects who answers. Every group member must be able to explain all parts.
 
 ## What to Bring
 
 - The car, fully assembled and functional
 - The phone control interface running
-- Your code (on the ESP32 and accessible for review)
-- Any CAD files or design documentation you want to show
+- Your presentation on a laptop
+- Your code accessible for review
 
-See the [Study Guide](03_StudyGuide-Mechatronics.qmd) for grading criteria and examination details.
+See the [Study Guide](../00_Course Documents/03_StudyGuide-Mechatronics.qmd) for grading criteria and examination details.

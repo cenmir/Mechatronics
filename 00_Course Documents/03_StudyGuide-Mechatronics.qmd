@@ -35,6 +35,12 @@ See [TimeEdit](https://cloud.timeedit.net/ju/web/open/riq0CdABQD9ZDAQt7A7FF83Q67
 
 Students are expected to work on the project outside of scheduled lab hours. Manage your time and activities carefully — working in parallel and communicating within the group is key to success.
 
+# Work instructions
+
+Follow the modules from top to bottom. Each module contains instructions, resources, and deliverables. The *RC Car Project* module contains the full project assignment.
+
+Optional modules with additional resources and exercises are available at the bottom. These are not required, but may be helpful for learning and practice. They are denoted as "*Recommended*".
+
 # Examination
 
 All learning outcomes are examined through the **project** and the **labs**. The project grade determines the course grade.
@@ -103,7 +109,7 @@ A shared supply of electrical components (resistors, capacitors, wires, etc.) is
 - The batteries are stored in the battery closet when not in use
 - Ask Mirza about charging the batteries. Pressing random buttons on the charger can lead to a battery fire
 - Do not drop, puncture, put in fire, leave in the sun, step on, throw, chew, or breathe in the batteries
-- Do not leave plugged into a device when not in use. It will discharge
+- Do not leave plugged into a device when not in use. It discharge below 3.3V per cell and capacity is permantently lost, the battery may swell and recharging may lead to fire.
 - Do not discharge below 3.3V per cell (9.9V total for 3S)
 - Inspect before use. Do not use swollen or damaged batteries
 
@@ -141,10 +147,6 @@ Title: Practical Electronics for Inventors\
 Author: Paul Scherz, Simon Monk\
 ISBN: 9781259587542
 
-## Recommended Videos
-
-- **Ben Eater, Digital Electronics** (YouTube series, available as a Canvas module)
-- **Writing Documentation with Quarto**: <https://python.ju.se/ProgrammingFundamentals/writing_documentation.html>
 
 # Course Evaluation 
 

@@ -26,6 +26,9 @@ The ESP32 is the brain of the RC car. Its GPIO (General Purpose Input/Output) pi
 - USB cable
 - Breadboard and jumper wires
 
+<iframe src="https://wokwi.com/projects/459211802854439937?embed=1" width="100%" height="500" style="border: 1px solid #ccc; border-radius: 8px;"></iframe>
+
+
 ## Tasks
 
 1. **Calculate** the appropriate resistor for an LED at 10mA from 3.3V.

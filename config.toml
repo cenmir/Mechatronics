@@ -6,3 +6,8 @@ semester = "Spring 2026"
 canvas_api_url = "https://ju.instructure.com"
 canvas_token_path = "../privateCanvasToken"
 language = "english"
+
+[branding]
+css = "branding.css"
+# Optional: external CSS loaded on Canvas (e.g. institution theme)
+canvas_css_url = "https://instructure-uploads-eu.s3.eu-west-1.amazonaws.com/account_144680000000000001/attachments/388876/app.ju.min.css"

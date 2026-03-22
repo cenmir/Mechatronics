@@ -31,6 +31,19 @@ We use the **IRL540N** — a logic-level N-channel MOSFET with $V_{GS(th)} \appr
 Make sure you use a **logic-level** MOSFET (like IRL540N). Standard MOSFETs (like IRF540N — note: no "L") require 5–10V at the gate and will not fully turn on with 3.3V.
 :::
 
+### Pull-Down and Pull-Up Resistors
+
+A MOSFET gate has extremely high impedance — essentially no current flows into it. This means that when the gate is not actively driven (e.g. during boot, or if a wire comes loose), it **floats** at an undefined voltage. Stray charge or electrical noise can randomly turn the MOSFET on and off — a dangerous situation when controlling motors or high-current loads.
+
+A **pull-down resistor** (typically 10 kΩ) connects the gate to GND, ensuring a defined OFF state when nothing is driving it:
+
+- GPIO driving HIGH → gate goes to 3.3 V → MOSFET turns on (the GPIO easily overpowers the weak pull-down)
+- GPIO not connected or tri-stated → pull-down holds gate at 0 V → MOSFET stays safely off
+
+A **pull-up resistor** does the opposite — it connects a pin to the supply voltage, ensuring a defined HIGH state when not driven. You will see pull-ups used in Lab 7 on the P-channel MOSFET gate (where the default state should be OFF, which for a P-channel means gate = $V_{supply}$), and in Lab 16 on the I²C bus (where the protocol requires pull-ups on SDA and SCL).
+
+**General rule:** any control input that could float should be pulled to a known state with a resistor. You will use this pattern throughout the course.
+
 ## Components
 
 - ESP32 DevKit

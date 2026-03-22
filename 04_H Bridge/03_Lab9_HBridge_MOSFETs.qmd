@@ -17,7 +17,7 @@ canvas:
 
 ## Background
 
-Replace the manual switches from Lab 8 with MOSFETs, using the circuit from the [H-Bridge Theory](../04_H_Bridge/01_HBridge_Theory.qmd) page:
+Replace the manual switches from Lab 8 with MOSFETs, using the circuit from the [H-Bridge Theory](01_HBridge_Theory.qmd) page:
 
 - **High-side switches:** IRF9540 (P-channel) with 2N7000 level shifters (as in Lab 7)
 - **Low-side switches:** IRL540N (N-channel, logic-level) driven directly by ESP32 (as in Lab 6)
