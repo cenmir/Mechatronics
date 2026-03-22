@@ -1,0 +1,53 @@
+---
+title: "Lab 8 – H-Bridge with Manual Switches"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Understand the H-bridge topology for bidirectional motor control
+- Experience forward, reverse, coast, and brake modes
+- Learn why shoot-through is destructive and must be prevented
+
+## Background
+
+Read the [H-Bridge Theory](../04_H_Bridge/01_HBridge_Theory.qmd) page before starting this lab.
+
+In this lab you replace the MOSFETs with manual push-button switches to build intuition for how the H-bridge works. This is a conceptual exercise before you build the electronic version in Lab 9.
+
+## Components
+
+- 4× Tactile push-button switches
+- 1× Small DC motor (or LED to observe current direction)
+- 12V power supply **with current limit set to 500mA**
+- Breadboard and jumper wires
+
+::: {.callout-warning}
+**Set the power supply current limit to 500mA** before starting. This protects against accidental shoot-through.
+:::
+
+## Tasks
+
+1. Build the H-bridge using four push-button switches and a small motor.
+2. Press S1 + S4 simultaneously. Which direction does the motor spin? (**Forward**)
+3. Press S3 + S2 simultaneously. Does the motor reverse? (**Reverse**)
+4. Release all switches while the motor is spinning. Does it stop immediately? (**Coast**)
+5. While the motor is spinning, press S2 + S4 (both low-side switches). Does it stop faster? (**Brake**)
+6. **Carefully** press S1 + S2 (same-leg switches, with current limit set!). What happens to the current reading on the power supply? **This is shoot-through.**
+
+## Questions
+
+1. Why is the H-bridge called an "H"-bridge? Draw the topology.
+2. Explain the difference between coast mode and brake mode. When would you use each in the RC car?
+3. What could go wrong if there is no dead-time when switching from forward to reverse electronically?
+4. The BTS7960 motor driver has built-in shoot-through protection. Why is this important?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include a diagram of your H-bridge circuit, describe what you observed in each mode (forward, reverse, coast, brake, shoot-through), and answer the questions. Render to PDF and upload.

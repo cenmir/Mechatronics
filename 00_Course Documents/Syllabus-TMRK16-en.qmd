@@ -1,0 +1,130 @@
+---
+title: "Course Syllabus"
+format:
+  pdf:
+    documentclass: article
+    papersize: a4
+    geometry:
+      - margin=2.5cm
+    number-sections: false
+    colorlinks: true
+    linkcolor: "ju-purple"
+    urlcolor: "ju-purple"
+    include-in-header:
+      text: |
+        \usepackage{xcolor}
+        \usepackage{colortbl}
+        \usepackage{longtable}
+        \usepackage{array}
+        \definecolor{ju-purple}{RGB}{150,27,129}
+        \definecolor{ju-darkblue}{RGB}{0,56,101}
+        \definecolor{lightgray}{gray}{0.9}
+        \renewcommand{\familydefault}{\sfdefault}
+        \renewcommand{\maketitle}{}
+        \usepackage{titlesec}
+        \titleformat{\section}{\Large\bfseries\color{ju-darkblue}}{}{0em}{}
+        \titleformat{\subsection}{\large\bfseries\color{ju-darkblue}}{}{0em}{}
+        \titleformat{\subsubsection}{\normalsize\bfseries\color{ju-purple}}{}{0em}{}
+lang: en
+---
+
+\thispagestyle{empty} 
+
+```{=latex}
+{\Large\bfseries\color{ju-purple} COURSE SYLLABUS}
+
+\vspace{0.3cm}
+
+{\LARGE\bfseries Mechatronics, 7.5 credits}
+
+\vspace{0.1cm}
+
+{\large\itshape Mekatronik, 7{,}5 högskolepoäng}
+
+\vspace{0.8cm}
+
+\begin{tabular}{@{}p{3cm}p{3.5cm}p{3.5cm}p{4cm}@{}}
+Course code: & TMRK16 & Level: & First cycle \\
+Established: & 2025-02-01 & Field of education: & Technology \\
+Revised: & 2025-10-29 & Subject group: & Mechanical Engineering \\
+Valid from: & 2026-01-19 & Specialisation: & G1F \\
+ & & Main field: & Mechanical Engineering \\
+\end{tabular}
+
+\vspace{0.5cm}
+\noindent\rule{\textwidth}{0.4pt}
+```
+
+## Learning Outcomes
+
+After completing the course, the student shall:
+
+### Knowledge and understanding
+
+- demonstrate knowledge of linear voltage regulation, batteries, battery charging, and its environmental impact, power dimensioning, and energy consumption
+- demonstrate knowledge of commonly used sensors and actuators in electromechanical systems
+- demonstrate knowledge of different types of communication between electromechanical systems
+- demonstrate in-depth knowledge of fundamental concepts in electronics such as: resistance, voltage, current, capacitance, power, Ohm's law, Kirchhoff's laws, and more
+
+### Skills and abilities
+
+- demonstrate the ability to use and develop code for microcontrollers to implement electromechanical systems
+- demonstrate the ability to use multimeters and oscilloscopes to measure and troubleshoot electromechanical systems
+- demonstrate the ability to realise simple circuit boards through PCB circuit construction and soldering of components
+- demonstrate the ability to select appropriate sensors and actuators to implement electromechanical systems
+- demonstrate the ability to implement fundamental control and regulation in electromechanical systems
+
+## Content
+
+The course covers fundamental concepts in electronics and the use of electromechanical components to create prototypes of electromechanical systems.
+
+The course includes the following elements:
+
+- Electrical concepts and DC circuit calculations
+- Resistors, capacitors, diodes, semiconductor technology, and transistors as switches
+- Instrument knowledge
+- Microcontroller programming
+- Sensors/transducers for measuring position, motion, force, temperature
+- Control of various motors/actuators, e.g., DC, servo, stepper, and brushless motors
+- Various communication protocols for hardware-level communication, component interconnection
+- Wireless technology for communication and control
+- Implementation of control and regulation
+- Battery technology
+- Control systems for production
+- Control systems for embedded products
+
+## Teaching Methods
+
+Teaching is conducted through lectures, exercises or demonstrations, and laboratory sessions.
+
+Teaching is conducted in Swedish but English may occur.
+
+## Prerequisites
+
+General eligibility and completion of courses in Product Development and CAD, 7.5 credits, Scientific Programming, 7.5 credits, and Analysis and Linear Algebra, 15 credits (or equivalent knowledge).
+
+## Examination and Grading
+
+The course is graded 5, 4, 3, or U (Fail).
+
+| Examination component | Credits | Grade |
+|:--|:--|:--|
+| Project^1^ | 4.5 credits | 5/4/3/U |
+| Laboratory work^2^ | 3 credits | P/U |
+
+^1^ Determines the final course grade, which is issued only when all components are approved.\
+^2^ Project and laboratory work are carried out in groups.
+
+## Course Literature
+
+Note that the course literature may change up to eight weeks before the course starts.
+
+### Reference (not required to purchase)
+
+Title: Mechatronics\
+Author: William Bolton\
+ISBN: 9789353065881
+
+Title: Practical Electronics for Inventors\
+Author: Paul Scherz, Simon Monk\
+ISBN: 9781259587542

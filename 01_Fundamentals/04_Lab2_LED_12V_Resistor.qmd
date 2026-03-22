@@ -1,0 +1,60 @@
+---
+title: "Lab 2 – LED from 12V with Resistor"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Apply Ohm's law to calculate a current-limiting resistor
+- Understand voltage drops in a series circuit (Kirchhoff's Voltage Law)
+- Calculate power dissipation
+- This is directly relevant — the RC car runs on 12V
+
+## Background
+
+In the RC car, the battery provides approximately 12V. To safely drive an LED from this voltage, we place a **resistor in series** to limit the current. The resistor "drops" the excess voltage:
+
+$$V_R = V_{supply} - V_f$$
+
+Using Ohm's law:
+
+$$R = \frac{V_R}{I_{LED}} = \frac{V_{supply} - V_f}{I_{LED}}$$
+
+## Components
+
+- 1× LED
+- Resistors: 220Ω, 470Ω, 1kΩ, 10kΩ
+- Lab bench power supply set to 12V
+- Multimeter
+
+::: {.callout-tip}
+## Measuring Current
+
+Your standard multimeter measures current **in series** — you must break the circuit and route the current through the meter. This is accurate but requires rewiring every time you want to switch between voltage and current measurements.
+
+There is also a **clamp meter** available in the lab (ask the instructor). A clamp meter measures current by clamping around a wire — no need to break the circuit. Try both methods and compare!
+:::
+
+## Tasks
+
+1. **Calculate** the required resistance for 20mA through a red LED ($V_f \approx 2V$) from 12V.
+2. Build the circuit with your calculated resistor (nearest standard value). **Measure** the actual current — first with your multimeter in series, then try the clamp meter if available.
+3. **Measure** the voltage across the resistor and the voltage across the LED separately. Do they sum to 12V? (Kirchhoff's Voltage Law)
+4. **Calculate** the power dissipated by the resistor ($P = I^2 R$). Is it within the resistor's rating (typically 0.25W)?
+5. Try different resistor values (470Ω, 1kΩ, 10kΩ). Observe how brightness changes with current.
+
+## Questions
+
+1. If you use a 10kΩ resistor, what current flows? What happens to brightness?
+2. What resistor value would cause 0.25W dissipation at 12V (with $V_f = 2V$)?
+3. Why can't we just use a very small resistor to make the LED brighter?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include your calculations (show Ohm's law and KVL), a table of measurements for each resistor value, and answers to the questions. Render to PDF and upload.

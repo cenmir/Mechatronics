@@ -1,0 +1,52 @@
+---
+title: "Lab 1 – LED from Power Supply"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+::: {.callout-tip}
+## Recommended viewing: Ben Eater's Digital Electronics Series
+Throughout the initial labs (Labs 1–9), we strongly recommend watching the video series **"Basic digital electronics with Ben Eater"** available in the Canvas module of the same name. Ben Eater explains fundamental electronics concepts — voltage, current, resistors, transistors, logic gates — with excellent visual clarity. Watching these videos alongside the labs will deepen your understanding significantly.
+:::
+
+## Learning Goals
+
+- Understand LED polarity (anode/cathode) and forward voltage
+- Learn why current limiting is essential
+- Use the lab bench power supply and multimeter
+
+## Background
+
+A Light Emitting Diode (LED) emits light when current flows through it in the correct direction. Unlike a resistor, an LED has a nearly fixed **forward voltage** ($V_f$) — typically around 2V for a red LED — and will allow increasing current as voltage rises above $V_f$. Without current limiting, the LED draws excessive current and burns out.
+
+## Components
+
+- 1× LED (red or green, through-hole)
+- Lab bench power supply (adjustable voltage and current limit)
+- Multimeter
+
+## Tasks
+
+1. Set the power supply to **2.0V** with a **20mA current limit**. Connect the LED — observe polarity (long leg = anode = +). Does it light up?
+2. Slowly increase voltage from 0V while observing the current. At what voltage does the LED start conducting? Record this as $V_f$.
+3. Remove the current limit. Set the voltage to 5V. **What happens?** (Use a sacrificial LED.)
+4. Measure the forward voltage across the LED with a multimeter while it conducts at 20mA.
+
+## Questions
+
+1. Why does the LED not light up when connected in reverse?
+2. Why is connecting an LED directly to a voltage source (without current limiting) dangerous?
+3. What is the purpose of the current limit feature on the power supply?
+
+::: {.callout-warning}
+LEDs without current limiting will burn out instantly. Always use either a current-limited supply or a series resistor.
+:::
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include your measurements, calculations, and answers to the questions. Render to PDF and upload.

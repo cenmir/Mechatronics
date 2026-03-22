@@ -1,0 +1,75 @@
+---
+title: "Lab 5 – PWM Controlled by Potentiometer"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Read an analog sensor using the ESP32's ADC (Analog-to-Digital Converter)
+- Create your first sensor → actuator control loop
+- This is the same principle as joystick → motor in the car
+
+## Background
+
+A potentiometer is a variable resistor that outputs a voltage proportional to its position. The ESP32's ADC converts this analog voltage (0–3.3V) into a digital value. With the default 12-bit resolution, readings range from 0 to 4095.
+
+This lab creates the pattern: **read sensor → process → drive actuator** — the fundamental loop of any mechatronic system.
+
+## Components
+
+- ESP32 DevKit
+- 1× Potentiometer (10kΩ)
+- 1× LED + resistor
+- Breadboard and jumper wires
+
+## Tasks
+
+1. Wire the potentiometer: one outer pin to 3.3V, the other to GND, the center (wiper) to GPIO 34 (ADC input).
+2. Upload the code below. Open the Serial Monitor and turn the potentiometer.
+
+```cpp
+const int potPin = 34;
+const int ledPin = 2;
+const int pwmFreq = 5000;
+const int pwmResolution = 8;
+
+void setup() {
+  Serial.begin(115200);
+  ledcAttach(ledPin, pwmFreq, pwmResolution);
+}
+
+void loop() {
+  int potValue = analogRead(potPin);           // 0–4095
+  int pwmValue = map(potValue, 0, 4095, 0, 255); // scale to 8-bit
+  ledcWrite(ledPin, pwmValue);
+
+  Serial.print("Pot: ");
+  Serial.print(potValue);
+  Serial.print(" -> PWM: ");
+  Serial.println(pwmValue);
+
+  delay(50);
+}
+```
+
+3. Verify that the LED brightness follows the potentiometer position smoothly.
+4. **Measure** the voltage at the potentiometer wiper with a multimeter at three different positions (min, center, max). Does it match the ADC reading (`value / 4095 × 3.3V`)?
+5. Replace the potentiometer with a **joystick module** (it contains two potentiometers). Read both X and Y axes and print values to Serial.
+
+## Questions
+
+1. Why do we use `map()` to convert 0–4095 to 0–255?
+2. The joystick in the RC car controller works exactly like a potentiometer. What value do you expect at center position?
+3. If the ADC reads 2048, what voltage is at the input pin?
+
+**Bonus questions for the interested**: Do you think that you can design a car controller using a standard potentiometer as the throttle wheel that returns to center when released? Why or why not? What kind of sensor would be better for this application? If you find something cheap on amazon or aliexpress, let Mirza know and he might be able to get it for you. 
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include a table of potentiometer positions vs. measured voltages vs. ADC readings, your code, and answers to the questions. Render to PDF and upload.

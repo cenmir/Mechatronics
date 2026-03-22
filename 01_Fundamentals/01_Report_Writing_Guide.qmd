@@ -1,0 +1,111 @@
+---
+title: "Lab Report Writing Guide"
+canvas:
+  type: page
+  published: true
+---
+
+## Supplementary Material
+
+We recommend watching the **"Basic digital electronics with Ben Eater"** video series (available as a Canvas module) alongside Labs 1–9. The videos cover the same fundamental concepts — voltage, current, resistors, transistors, MOSFETs — with excellent visual explanations that complement the hands-on lab work.
+
+## Writing Lab Reports in Quarto
+
+For the initial lab sessions (Labs 1–9) in this course, you will submit a short **lab report** as a rendered PDF. We use [Quarto](https://quarto.org) to write reports — it lets you combine text, equations, figures, and code in a single document.
+
+For a complete guide on writing reports in Quarto, see:
+
+**[Writing Documentation with Quarto](https://python.ju.se/ProgrammingFundamentals/writing_documentation.html)**
+
+## Installing development tools
+
+Run this command in PowerShell to install the development tools
+
+```
+irm https://raw.githubusercontent.com/cenmir/python-dev-installer/main/download.ps1 | iex
+```
+
+
+### Getting Started
+
+Your report is written as a `.qmd` file (or a Jupyter notebook `.ipynb`) and rendered to PDF. A minimal report looks like this:
+
+````markdown
+---
+title: "Lab 1 – LED from Power Supply"
+author: "Alice Andersson, Bob Bengtsson, Charlie Carlsson"
+date: today
+format:
+  pdf:
+    documentclass: article
+    geometry: margin=2.5cm
+    fontsize: 11pt
+    number-sections: true
+---
+
+## Purpose
+
+Briefly state the goal of the lab in your own words.
+
+## Theory
+
+Explain the relevant theory. Use equations where appropriate:
+
+$$V = IR$$
+
+$$P = VI = I^2 R = \frac{V^2}{R}$$
+
+## Method
+
+Describe what you did. Include circuit diagrams (photos or drawn).
+
+## Results
+
+Present your measurements in tables and/or figures.
+
+| Resistor | Calculated $I$ | Measured $I$ | Deviation |
+|----------|---------------|-------------|-----------|
+| 470 Ω    | 21.3 mA       | 20.8 mA     | 2.3%      |
+
+## Discussion
+
+- Do your measurements match the calculations?
+- What sources of error exist?
+- What did you learn?
+
+## Conclusion
+
+One or two sentences summarizing the key takeaway.
+````
+
+### Render to PDF
+
+```bash
+quarto render my_report.qmd --to pdf
+```
+
+### What We Expect
+
+Your report should be **short** — typically 2–4 pages. Focus on:
+
+1. **Showing your calculations** — use proper equations, not just numbers
+2. **Presenting measurements** — tables comparing calculated vs measured values
+3. **Answering the lab questions** — integrate answers into your discussion
+4. **Including circuit photos** — a photo of your breadboard setup, or a drawn circuit diagram
+
+You do **not** need to write a lengthy introduction or extensive background theory. Keep it concise.
+
+### Including Images
+
+Take photos of your circuits and oscilloscope screens. Include them in your report:
+
+```markdown
+![My circuit on the breadboard](photos/lab1_circuit.jpg){width=60%}
+```
+
+### Tips
+
+- All three group members should be listed as authors
+- Number your sections (`number-sections: true`) for easy reference
+- Use `$$` for display equations and `$` for inline math
+- Keep file sizes reasonable — resize photos before including them

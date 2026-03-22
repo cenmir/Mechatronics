@@ -1,0 +1,246 @@
+---
+title: "Lab 16 – AS5600 Magnetic Encoder (I2C)"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf, png, jpg, jpeg, mp4, mov]
+---
+
+## Learning Goals
+
+- Read rotational position and speed from an AS5600 magnetic encoder
+- Understand the I2C communication protocol
+- Calculate wheel speed from angular measurements — and discover the pitfalls
+- Use Rob Tillaart's AS5600 library to solve rollover, timing, and noise problems
+
+## Background
+
+The **AS5600** is a contactless magnetic rotary position sensor. A diametrically magnetized magnet is attached to the rotating shaft, and the AS5600 detects its angle with 12-bit resolution (0–4095 per revolution).
+
+**I2C** is a two-wire protocol:
+
+- **SDA** (Serial Data) and **SCL** (Serial Clock)
+- Both lines need **pull-up resistors** (typically 4.7kΩ to 3.3V)
+- AS5600 address: `0x36`
+
+## Components
+
+- ESP32 DevKit
+- 1× AS5600 encoder module
+- 1× Diametrically magnetized magnet
+- 2× 4.7kΩ pull-up resistors (may be on module)
+
+## Tasks
+
+1. Wire: VCC → 3.3V, GND → GND, SDA → GPIO 21, SCL → GPIO 22.
+2. Run an I2C scanner to verify detection at `0x36`:
+
+```cpp
+#include <Wire.h>
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  for (byte addr = 1; addr < 127; addr++) {
+    Wire.beginTransmission(addr);
+    if (Wire.endTransmission() == 0) {
+      Serial.print("Found: 0x");
+      Serial.println(addr, HEX);
+    }
+  }
+}
+void loop() {}
+```
+
+3. Read the raw angle:
+
+```cpp
+#include <Wire.h>
+const uint8_t AS5600_ADDR = 0x36;
+const uint8_t RAW_ANGLE_REG = 0x0C;
+
+uint16_t readAngle() {
+  Wire.beginTransmission(AS5600_ADDR);
+  Wire.write(RAW_ANGLE_REG);
+  Wire.endTransmission(false);
+  Wire.requestFrom(AS5600_ADDR, (uint8_t)2);
+  uint16_t angle = Wire.read() << 8;
+  angle |= Wire.read();
+  return angle & 0x0FFF;
+}
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+}
+
+void loop() {
+  uint16_t raw = readAngle();
+  float degrees = raw * 360.0 / 4096.0;
+  Serial.print("Angle: ");
+  Serial.print(degrees, 1);
+  Serial.println(" deg");
+  delay(100);
+}
+```
+
+4. Rotate the magnet — verify smooth 0–360° reading.
+5. Calculate RPM and ground speed:
+
+```cpp
+unsigned long lastTime = 0;
+uint16_t lastAngle = 0;
+
+void loop() {
+  uint16_t raw = readAngle();
+  unsigned long now = micros();
+  int16_t diff = (int16_t)raw - (int16_t)lastAngle;
+  if (diff > 2048) diff -= 4096;
+  if (diff < -2048) diff += 4096;
+  float dt = (now - lastTime) / 1e6;
+  float rpm = (diff * 360.0 / 4096.0) / dt / 6.0;
+  // Ground speed: v = RPM × π × 0.06 × 60/1000 [km/h]
+  float speed_kmh = rpm * 0.01131;
+  lastAngle = raw;
+  lastTime = now;
+  Serial.print("RPM: "); Serial.print(rpm, 0);
+  Serial.print("  Speed: "); Serial.print(speed_kmh, 1);
+  Serial.println(" km/h");
+  delay(50);
+}
+```
+
+6. Attach the magnet to a motor shaft or wheel axle. Verify RPM readings.
+7. **Observe the problems.** Spin the magnet at varying speeds and note:
+   - The RPM value jumps wildly — especially at low speed or when direction changes
+   - At the 0°/360° boundary the angle wraps from 4095→0, causing a huge spike in the calculated speed
+   - If `dt` happens to be very small (or zero), the division produces enormous values
+   - At standstill, sensor noise causes small angle jitter that reads as non-zero speed
+
+These are real engineering problems. The naive approach above works in theory but fails in practice. In Part 2 we fix this properly.
+
+---
+
+## Part 2: Using Rob Tillaart's AS5600 Library
+
+The manual approach above has several issues that are tricky to solve correctly:
+
+| Problem | What happens |
+|---------|-------------|
+| **Rollover** | Angle jumps from 4095→0 (or 0→4095), producing a massive false speed spike |
+| **Small Δt** | If two reads happen very close in time, dividing by a tiny `dt` amplifies noise |
+| **Sensor noise** | At standstill, tiny angle fluctuations produce non-zero speed readings |
+| **Cumulative tracking** | Counting total revolutions across the 0/360° boundary requires careful bookkeeping |
+
+Rob Tillaart's `AS5600` library handles all of these internally. It tracks cumulative position (no rollover issues), manages timing, and provides clean speed readings.
+
+### Install the library
+
+In Arduino IDE: **Sketch → Include Library → Manage Libraries** → search for `AS5600` by Rob Tillaart → Install.
+
+Or in PlatformIO, add to `platformio.ini`:
+```ini
+lib_deps = robtillaart/AS5600
+```
+
+### Tasks
+
+8. Install the library and upload the following code:
+
+```cpp
+#include <AS5600.h>
+#include <Wire.h>
+
+AS5600 encoder;
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  encoder.begin();
+
+  // Check if the magnet is detected
+  if (encoder.detectMagnet()) {
+    Serial.println("Magnet detected!");
+  } else {
+    Serial.println("WARNING: No magnet detected.");
+  }
+
+  // First call to getAngularSpeed() is always invalid
+  // (no previous reading to compare against)
+  encoder.getAngularSpeed(AS5600_MODE_RPM);
+}
+
+void loop() {
+  // Read angle (0–4095)
+  uint16_t rawAngle = encoder.readAngle();
+  float degrees = rawAngle * AS5600_RAW_TO_DEGREES;
+
+  // Get angular speed in RPM — library handles
+  // rollover, timing, and edge cases internally
+  float rpm = encoder.getAngularSpeed(AS5600_MODE_RPM);
+
+  // Cumulative position tracks total rotation
+  // across the 0/360° boundary without glitches
+  int32_t cumulative = encoder.getCumulativePosition();
+  int32_t revolutions = encoder.getRevolutions();
+
+  // Calculate ground speed from RPM
+  // v = RPM × π × wheel_diameter × 60 / 1_000_000 [km/h]
+  const float wheelDiameter_m = 0.060;  // 60 mm
+  float speed_kmh = rpm * PI * wheelDiameter_m * 60.0 / 1000.0;
+
+  Serial.print("Angle: ");
+  Serial.print(degrees, 1);
+  Serial.print("°  RPM: ");
+  Serial.print(rpm, 1);
+  Serial.print("  Revs: ");
+  Serial.print(revolutions);
+  Serial.print("  Speed: ");
+  Serial.print(speed_kmh, 1);
+  Serial.println(" km/h");
+
+  delay(50);
+}
+```
+
+9. Spin the magnet and compare the readings to your Part 1 code. Notice:
+   - RPM is **much more stable** — no wild spikes at the rollover point
+   - `getRevolutions()` correctly counts full turns even across the 0/360° boundary
+   - At standstill, the speed reading stays close to zero
+
+10. Test cumulative position tracking. Spin the magnet several full turns in one direction, then reverse. Verify that `getRevolutions()` counts up and then back down correctly.
+
+11. **Performance tip:** If you need to read both angle and speed in the same loop iteration, use the `update = false` parameter to avoid redundant I2C reads:
+
+```cpp
+void loop() {
+  uint16_t angle = encoder.readAngle();
+
+  // Pass false — reuse the angle already read above
+  int32_t pos = encoder.getCumulativePosition(false);
+  float rpm = encoder.getAngularSpeed(AS5600_MODE_RPM, false);
+
+  // ... use values
+  delay(50);
+}
+```
+
+12. **Integration challenge:** Combine the encoder with the BTS7960 motor driver (Lab 10). Display the actual wheel speed on the Serial Monitor while controlling the motor with a potentiometer. Does the measured speed match what you expect from the gear ratio?
+
+### Questions
+
+1. What specific problems did you observe with the manual speed calculation in Part 1? At what speeds were they worst?
+2. The library documentation states that `getAngularSpeed()` needs to be called "at least four times per rotation" for reasonable precision. If your motor spins at 1000 RPM, what is the maximum allowed delay between calls?
+3. If the encoder is mounted on the wheel axle (after the gearbox), the RPM reading is the wheel RPM directly. If mounted on the motor shaft (before the gearbox), you need to divide by the gear ratio. Where would you mount it on your car, and why?
+4. How could you use the speed measurement to implement closed-loop speed control (PID)? What would the setpoint, measurement, and output be?
+
+## Submission
+
+Upload a **photo or video** showing:
+
+- Part 1: the noisy/glitchy RPM readings from your manual implementation
+- Part 2: the clean RPM readings using Rob Tillaart's library
+
+Alternatively, upload a brief PDF report comparing the two approaches.

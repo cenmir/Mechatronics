@@ -1,0 +1,58 @@
+---
+title: "Lab 7 – P-Channel MOSFET with Level Shifter"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Understand high-side switching with a P-channel MOSFET
+- Use an N-channel MOSFET (2N7000) as a logic level shifter
+- Learn how motor driver ICs combine N-channel and P-channel MOSFETs internally
+
+## Background
+
+A **P-channel MOSFET** turns ON when $V_{GS}$ is **negative** — i.e., the gate is pulled **below** the source. For a P-channel MOSFET with its source connected to 12V, we need to pull the gate to GND to turn it on.
+
+Problem: the ESP32 outputs 0–3.3V, but the P-channel gate needs to swing between GND and 12V. Solution: use a **2N7000** (small N-channel MOSFET) as a level shifter.
+
+**How it works:**
+
+- ESP32 GPIO = HIGH (3.3V) → 2N7000 turns ON → pulls IRF9540 gate to GND → IRF9540 turns ON → load is powered
+- ESP32 GPIO = LOW (0V) → 2N7000 turns OFF → 10kΩ pull-up pulls IRF9540 gate to 12V → IRF9540 turns OFF
+
+This is exactly the circuit used in the H-bridge (Lab 8–9) for the high-side switches.
+
+## Components
+
+- ESP32 DevKit
+- 1× IRF9540 (P-channel MOSFET)
+- 1× 2N7000 (N-channel MOSFET, level shifter)
+- 1× LED + resistor for 12V
+- 1× 10kΩ pull-up resistor (IRF9540 gate to 12V)
+- 1× 10kΩ pull-down resistor (2N7000 gate to GND)
+- 12V power supply
+
+## Tasks
+
+1. Build the level-shifter circuit:
+   - **IRF9540:** Source to 12V, Drain to LED+resistor to GND, Gate to 2N7000 drain
+   - **2N7000:** Source to GND, Drain to IRF9540 gate (with 10kΩ pull-up to 12V), Gate to ESP32 GPIO (with 10kΩ pull-down to GND)
+2. Test with blink code. Verify the 12V LED is controlled from the ESP32.
+3. **Measure** the IRF9540 gate voltage when the LED is ON and when OFF.
+4. Apply PWM to dim the LED. Does it work?
+
+## Questions
+
+1. Draw the complete circuit including both MOSFETs, both resistors, the LED, and the ESP32 GPIO. Label all voltages.
+2. What happens if you connect the ESP32 GPIO directly to the IRF9540 gate (without the 2N7000)? Why doesn't it work?
+3. An H-bridge uses P-channel (high-side) and N-channel (low-side) MOSFETs. Can you see how this lab connects to the next one?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include a hand-drawn circuit diagram with voltage annotations, your gate voltage measurements, and answers to the questions. Render to PDF and upload.

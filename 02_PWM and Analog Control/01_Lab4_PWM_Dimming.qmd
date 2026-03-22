@@ -1,0 +1,75 @@
+---
+title: "Lab 4 – PWM Dimming from ESP32"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Understand Pulse Width Modulation (PWM) and how a digital signal produces an "analog" effect
+- Observe PWM signals on the oscilloscope
+- This is the same principle used to control motor speed and servo position
+
+## Background
+
+PWM rapidly switches a pin between HIGH and LOW. The **duty cycle** — the fraction of time the signal is HIGH — determines the average power delivered to the load:
+
+- 0% duty = always LOW (LED off)
+- 50% duty = half brightness
+- 100% duty = always HIGH (LED full brightness)
+
+The ESP32 has a built-in LED Control (LEDC) peripheral with 16 channels and configurable frequency/resolution.
+
+![](graphics/20260322113628.png)
+
+## Components
+
+- ESP32 DevKit
+- 1× LED + resistor (from Lab 3)
+- Oscilloscope
+
+## Tasks
+
+1. Upload the following code and observe the LED smoothly fading:
+
+```cpp
+const int ledPin = 2;
+const int pwmFreq = 5000;     // 5 kHz
+const int pwmResolution = 8;  // 8-bit: 0–255
+
+void setup() {
+  ledcAttach(ledPin, pwmFreq, pwmResolution);
+}
+
+void loop() {
+  for (int duty = 0; duty <= 255; duty++) {
+    ledcWrite(ledPin, duty);
+    delay(10);
+  }
+  for (int duty = 255; duty >= 0; duty--) {
+    ledcWrite(ledPin, duty);
+    delay(10);
+  }
+}
+```
+
+2. Connect the oscilloscope to the GPIO pin. Observe the PWM waveform.
+3. **Measure** the frequency — does it match the configured 5 kHz?
+4. Set the duty to 64 (25%), 128 (50%), and 192 (75%). **Measure** the duty cycle on the oscilloscope and compare with expected values.
+5. Change the frequency to 50 Hz. Can you see the LED flickering now? Why?
+6. Change the frequency to 50 Hz and resolution to 16-bit. This is the setting used for servo control (Lab 11).
+
+## Questions
+
+1. Why does PWM at 5 kHz appear as steady dimming to the eye, but 50 Hz flickers?
+2. What is the difference between 8-bit resolution (256 steps) and 10-bit resolution (1024 steps)?
+3. The BTS7960 motor driver accepts PWM input to control motor speed. What duty cycle would give half speed?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include oscilloscope screenshots showing the PWM waveform at different duty cycles, your frequency measurements, and answers to the questions. Render to PDF and upload.

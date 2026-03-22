@@ -1,0 +1,79 @@
+---
+title: "Lab 12 – Voltage Divider and Battery Monitor"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf, png, jpg, jpeg, mp4, mov]
+---
+
+## Learning Goals
+
+- Build a voltage divider to measure 12V battery voltage with the ESP32's ADC (max 3.3V)
+- Implement a low-voltage cutoff to protect the LiPo battery
+- This is a critical safety feature for the RC car
+
+## Background
+
+The ESP32's ADC reads 0–3.3V. To measure the 3S LiPo (9.9–12.6V), use a **voltage divider**:
+
+$$V_{out} = V_{in} \times \frac{R_2}{R_1 + R_2}$$
+
+With $R_1 = 27k\Omega$ and $R_2 = 10k\Omega$: $V_{out} = V_{in} \times 0.27$
+
+At full charge (12.6V): $V_{out} = 3.4V$
+
+::: {.callout-danger}
+A 3S LiPo must **never** be discharged below **3.3V per cell** (9.9V total). Discharging below this causes permanent damage and is a fire hazard. Your car **must** implement automatic shutoff!
+:::
+
+## Components
+
+- ESP32 DevKit
+- Resistors: 27kΩ, 10kΩ
+- 12V power supply (variable, to simulate discharge)
+- Multimeter
+
+## Tasks
+
+1. Calculate and build the voltage divider. Connect output to GPIO 34.
+2. Upload:
+
+```cpp
+const int battPin = 34;
+const float R1 = 27000.0;
+const float R2 = 10000.0;
+const float dividerRatio = R2 / (R1 + R2);
+const float LOW_VOLTAGE_CUTOFF = 9.9;  // 3.3V/cell × 3
+
+void setup() { Serial.begin(115200); }
+
+void loop() {
+  int adcValue = analogRead(battPin);
+  float adcVoltage = adcValue * (3.3 / 4095.0);
+  float battVoltage = adcVoltage / dividerRatio;
+  float cellVoltage = battVoltage / 3.0;
+
+  Serial.print("Battery: ");
+  Serial.print(battVoltage, 2);
+  Serial.print("V  |  Per cell: ");
+  Serial.print(cellVoltage, 2);
+  Serial.println("V");
+
+  if (battVoltage < LOW_VOLTAGE_CUTOFF) {
+    Serial.println("!!! LOW BATTERY - SHUTTING DOWN !!!");
+    // In the car: stop motor, disable outputs
+  }
+  delay(500);
+}
+```
+
+3. Set power supply to 12.6V, verify reading. Compare with multimeter.
+4. Slowly decrease voltage. Verify the low-voltage warning triggers at 9.9V.
+5. Calibrate if needed by adjusting the divider ratio constant.
+
+## Submission
+
+Upload a **photo** showing the Serial Monitor with correct battery voltage reading, or a brief PDF report with your calibration data.

@@ -1,0 +1,161 @@
+---
+title: "Lab 15 – Web Server and WebSockets"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf, png, jpg, jpeg, mp4, mov]
+---
+
+## Learning Goals
+
+- Create a web-based controller hosted on the ESP32
+- Use WebSockets for real-time bidirectional communication
+- Send joystick commands from phone, receive telemetry back
+- This is the primary control method for the RC car
+
+## Background
+
+The ESP32 runs as a **WiFi Access Point** and hosts a web server. Your phone connects to the ESP32's WiFi and opens a page with virtual joysticks. **WebSockets** provide low-latency bidirectional communication — much faster than HTTP polling.
+
+**Architecture:**
+
+1. ESP32 creates WiFi AP → phone connects
+2. Phone opens `http://192.168.4.1` → ESP32 serves HTML/JS page
+3. WebSocket connection → real-time data exchange
+4. Phone sends joystick data → ESP32 controls motor/servo
+5. ESP32 sends telemetry → phone displays battery voltage
+
+## Components
+
+- ESP32 DevKit
+- Phone or laptop with WiFi
+- Motor + BTS7960 + servo (from previous labs)
+- 12V power supply or 3S LiPo
+
+## Tasks
+
+1. Install `ESPAsyncWebServer` and `AsyncTCP` libraries.
+2. Upload the starter code:
+
+```cpp
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
+const char* ssid = "RC-Car-XX";      // Use your group number
+const char* password = "mekatronik";
+
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+
+void onWebSocketEvent(AsyncWebSocket *server,
+    AsyncWebSocketClient *client,
+    AwsEventType type, void *arg,
+    uint8_t *data, size_t len) {
+  if (type == WS_EVT_DATA) {
+    data[len] = 0;
+    String msg = (char*)data;
+    int commaIndex = msg.indexOf(',');
+    if (commaIndex > 0) {
+      int steering = msg.substring(0, commaIndex).toInt();
+      int throttle = msg.substring(commaIndex + 1).toInt();
+      Serial.print("Steer: "); Serial.print(steering);
+      Serial.print(" Throt: "); Serial.println(throttle);
+      // TODO: drive servo and motor here
+    }
+  }
+}
+
+const char webpage[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>RC Car</title>
+  <style>
+    body { font-family: sans-serif; text-align: center;
+           padding: 20px; }
+    .slider-group { margin: 20px; }
+    input[type=range] { width: 80%; }
+    #telemetry { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h1>RC Car Control</h1>
+  <div class="slider-group">
+    <label>Steering: <span id="steerVal">0</span></label><br>
+    <input type="range" id="steering"
+           min="-255" max="255" value="0">
+  </div>
+  <div class="slider-group">
+    <label>Throttle: <span id="throtVal">0</span></label><br>
+    <input type="range" id="throttle"
+           min="-255" max="255" value="0">
+  </div>
+  <div id="telemetry">Battery: -- V</div>
+  <script>
+    const ws = new WebSocket('ws://' + location.host + '/ws');
+    const steer = document.getElementById('steering');
+    const throt = document.getElementById('throttle');
+    function send() {
+      if (ws.readyState === WebSocket.OPEN)
+        ws.send(steer.value + ',' + throt.value);
+      document.getElementById('steerVal').textContent
+        = steer.value;
+      document.getElementById('throtVal').textContent
+        = throt.value;
+    }
+    steer.addEventListener('input', send);
+    throt.addEventListener('input', send);
+    ws.onmessage = function(evt) {
+      document.getElementById('telemetry').textContent
+        = evt.data;
+    };
+    throt.addEventListener('mouseup', () => {
+      throt.value = 0; send(); });
+    throt.addEventListener('touchend', () => {
+      throt.value = 0; send(); });
+  </script>
+</body>
+</html>
+)rawliteral";
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.softAP(ssid, password);
+  Serial.print("AP IP: ");
+  Serial.println(WiFi.softAPIP());
+  ws.onEvent(onWebSocketEvent);
+  server.addHandler(&ws);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *req) {
+    req->send_P(200, "text/html", webpage);
+  });
+  server.begin();
+}
+
+void loop() {
+  ws.cleanupClients();
+  // Send telemetry every 500ms
+  static unsigned long lastTx = 0;
+  if (millis() - lastTx > 500) {
+    float battV = analogRead(34) * 3.3 / 4095.0
+                  / (10000.0 / 37000.0);
+    ws.textAll("Battery: " + String(battV, 1) + " V");
+    lastTx = millis();
+  }
+}
+```
+
+3. Connect your phone to the WiFi network. Open `http://192.168.4.1`.
+4. Move the sliders — verify values on Serial Monitor.
+5. Integrate motor and servo control from Labs 10–11.
+6. **Project phase:** Replace sliders with touch-friendly virtual joysticks (e.g. `nipplejs` library or custom canvas).
+7. Add battery telemetry from Lab 12.
+
+## Submission
+
+Upload a **video** showing phone-controlled motor/servo via the web interface, or a screenshot of the web page with Serial Monitor output.

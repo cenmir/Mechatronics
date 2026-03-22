@@ -1,0 +1,60 @@
+---
+title: "Lab 6 – 12V LED with N-Channel MOSFET"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Use a MOSFET as an electronic switch to control a 12V load from the ESP32's 3.3V logic
+- Understand gate threshold voltage and low-side switching
+- This is a building block for the H-bridge motor driver
+
+## Background
+
+The ESP32's GPIO pins output 3.3V and can only source ~12mA — far too little to drive a motor. A **MOSFET** acts as a voltage-controlled switch:
+
+- **Gate (G):** control terminal — connected to ESP32 GPIO
+- **Drain (D):** connected to the load
+- **Source (S):** connected to GND
+
+When the gate voltage exceeds the **threshold voltage** ($V_{GS(th)}$), the MOSFET turns on. An N-channel MOSFET switches the **low side** (between load and GND).
+
+We use the **IRL540N** — a logic-level N-channel MOSFET with $V_{GS(th)} \approx 2V$, so the ESP32's 3.3V fully turns it on.
+
+::: {.callout-warning}
+Make sure you use a **logic-level** MOSFET (like IRL540N). Standard MOSFETs (like IRF540N — note: no "L") require 5–10V at the gate and will not fully turn on with 3.3V.
+:::
+
+## Components
+
+- ESP32 DevKit
+- 1× IRL540N (logic-level N-channel MOSFET)
+- 1× LED + appropriate resistor for 12V
+- 1× 10kΩ pull-down resistor (gate to source)
+- 12V power supply
+- Breadboard and jumper wires
+
+## Tasks
+
+1. Build the circuit: LED + resistor from 12V to MOSFET drain. MOSFET source to GND. Gate to ESP32 GPIO with 10kΩ pull-down to GND.
+2. Reuse the blink code from Lab 3 to switch the MOSFET on and off. Does the 12V LED blink?
+3. Reuse the PWM fade code from Lab 4. Can you dim the 12V LED from the ESP32?
+4. **Measure** the voltage across the MOSFET (drain to source) when ON. Is it close to 0V?
+5. **Measure** $V_{DS}$ when OFF. What do you expect?
+6. Remove the gate connection (leave it floating). What happens? Why is the pull-down resistor important?
+
+## Questions
+
+1. Why do we connect the MOSFET between the load and GND (low-side) rather than between 12V and the load (high-side)?
+2. What is the purpose of the pull-down resistor on the gate?
+3. Look up the IRL540N datasheet. What is $R_{DS(on)}$ at $V_{GS} = 3.3V$? Calculate the power dissipated in the MOSFET when switching 1A.
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include a circuit diagram (drawn or photographed), your $V_{DS}$ measurements, the datasheet lookup, and answers to the questions. Render to PDF and upload.

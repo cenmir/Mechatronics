@@ -1,0 +1,131 @@
+---
+title: "Lab 9 – H-Bridge with MOSFETs and ESP32"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- Build a complete MOSFET-based H-bridge controlled by the ESP32
+- Combine concepts from Labs 6, 7, and 8 into a bidirectional motor speed controller
+- Understand dead-time and why dedicated motor driver ICs exist
+
+## Background
+
+Replace the manual switches from Lab 8 with MOSFETs, using the circuit from the [H-Bridge Theory](../04_H_Bridge/01_HBridge_Theory.qmd) page:
+
+- **High-side switches:** IRF9540 (P-channel) with 2N7000 level shifters (as in Lab 7)
+- **Low-side switches:** IRL540N (N-channel, logic-level) driven directly by ESP32 (as in Lab 6)
+
+Each high-side MOSFET needs:
+
+- A 2N7000 level shifter with its gate connected to ESP32 GPIO
+- A 10kΩ pull-up from the IRF9540 gate to $V_+$
+
+Each low-side MOSFET needs:
+
+- Gate connected directly to ESP32 GPIO
+- A 10kΩ pull-down from gate to GND
+
+## Components
+
+- ESP32 DevKit
+- 2× IRF9540 (P-channel MOSFET)
+- 2× IRL540N (N-channel MOSFET, logic-level)
+- 2× 2N7000 (level shifter)
+- 4× 10kΩ resistors (2 pull-ups for high-side, 2 pull-downs for low-side)
+- 1× Potentiometer (10kΩ)
+- 1× Small DC motor
+- 12V power supply with current limit
+
+## Tasks
+
+1. Build the MOSFET H-bridge on the breadboard. Use four ESP32 GPIO pins (e.g. GPIO 25, 26, 27, 32) — one per MOSFET/level-shifter pair.
+
+2. Write code to control direction and speed using a potentiometer:
+   - Potentiometer center (~2048) = motor stopped
+   - Turned right (>2048) = forward, speed proportional to position
+   - Turned left (<2048) = reverse, speed proportional to position
+
+3. **Important:** Implement dead-time (at least 10μs) when switching direction. Turn the active pair OFF, delay, then turn the new pair ON.
+
+```cpp
+const int highLeftPin = 25;   // IRF9540 left (via 2N7000)
+const int lowLeftPin = 26;    // IRL540N left
+const int highRightPin = 27;  // IRF9540 right (via 2N7000)
+const int lowRightPin = 32;   // IRL540N right
+const int potPin = 34;
+
+void allOff() {
+  digitalWrite(highLeftPin, LOW);
+  digitalWrite(lowLeftPin, LOW);
+  digitalWrite(highRightPin, LOW);
+  digitalWrite(lowRightPin, LOW);
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(highLeftPin, OUTPUT);
+  pinMode(lowLeftPin, OUTPUT);
+  pinMode(highRightPin, OUTPUT);
+  pinMode(lowRightPin, OUTPUT);
+  allOff();
+}
+
+void forward(int speed) {
+  allOff();
+  delayMicroseconds(50);  // Dead-time
+  digitalWrite(highLeftPin, HIGH);   // Left high ON
+  analogWrite(lowRightPin, speed);   // Right low PWM
+}
+
+void reverse(int speed) {
+  allOff();
+  delayMicroseconds(50);  // Dead-time
+  digitalWrite(highRightPin, HIGH);  // Right high ON
+  analogWrite(lowLeftPin, speed);    // Left low PWM
+}
+
+void loop() {
+  int pot = analogRead(potPin);
+
+  if (pot > 2148) {
+    int speed = map(pot, 2148, 4095, 0, 255);
+    forward(speed);
+  } else if (pot < 1948) {
+    int speed = map(pot, 1948, 0, 0, 255);
+    reverse(speed);
+  } else {
+    allOff();  // Dead zone
+  }
+  delay(20);
+}
+```
+
+4. Test forward and reverse. Observe the motor direction changing smoothly.
+5. **Measure** with the oscilloscope: capture the gate signals during a direction change. Is the dead-time visible?
+6. Count the total number of components in your H-bridge (MOSFETs, resistors, level shifters). Compare with the BTS7960 module (next lab).
+
+## Questions
+
+1. How many discrete components does your H-bridge require? How does this compare to using a BTS7960?
+2. What would happen without dead-time when switching direction rapidly?
+3. Why do commercial motor drivers include features like over-current protection and thermal shutdown?
+4. In the truth table, what is the difference between coast and brake? Which did you implement in `allOff()`?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include:
+
+- A **circuit diagram** (hand-drawn or schematic) showing all components with labels
+- Your code with comments explaining the dead-time implementation
+- Oscilloscope screenshots showing the gate signals
+- A component count comparison between your discrete H-bridge and the BTS7960
+- Answers to all questions
+
+Render to PDF and upload.

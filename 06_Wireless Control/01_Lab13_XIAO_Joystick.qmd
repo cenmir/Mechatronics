@@ -1,0 +1,71 @@
+---
+title: "Lab 13 – Remote Control: XIAO ESP32 + Joystick"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf, png, jpg, jpeg, mp4, mov]
+---
+
+## Learning Goals
+
+- Build a handheld wireless remote controller using the XIAO ESP32
+- Read joystick input and prepare for wireless transmission
+- Understand the XIAO's built-in LiPo charger
+
+## Components
+
+- 1× XIAO ESP32
+- 1–2× Joystick modules
+- 1× 1S LiPo battery (3.7V)
+- USB-C cable
+
+## Tasks
+
+1. Install the XIAO ESP32 board package in Arduino IDE / PlatformIO.
+2. Wire one joystick: VCC → 3.3V, GND → GND, X → A0, Y → A1, SW → D2.
+3. Upload and verify readings:
+
+```cpp
+const int joyXPin = A0;
+const int joyYPin = A1;
+const int joyBtnPin = D2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(joyBtnPin, INPUT_PULLUP);
+}
+
+void loop() {
+  int x = analogRead(joyXPin);
+  int y = analogRead(joyYPin);
+  bool btn = !digitalRead(joyBtnPin);
+
+  Serial.print("X: "); Serial.print(x);
+  Serial.print(" Y: "); Serial.print(y);
+  Serial.print(" Btn: "); Serial.println(btn);
+  delay(50);
+}
+```
+
+4. Note center, min, and max values for both axes.
+5. If using two joysticks, wire the second and read all four axes.
+6. Power the XIAO from the 1S LiPo — verify it runs without USB.
+7. Print the XIAO's **MAC address** (needed for ESP-NOW in Lab 14):
+
+```cpp
+#include <WiFi.h>
+void setup() {
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  Serial.print("MAC: ");
+  Serial.println(WiFi.macAddress());
+}
+void loop() {}
+```
+
+## Submission
+
+Upload a **photo or video** showing the joystick values on the Serial Monitor, plus a note of the MAC address.

@@ -1,0 +1,61 @@
+---
+title: "Lab 3 – LED from ESP32"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf]
+---
+
+## Learning Goals
+
+- First contact with the ESP32 microcontroller
+- Write a simple program to control a digital output (GPIO)
+- Understand the 3.3V logic level and its limitations
+
+## Background
+
+The ESP32 is the brain of the RC car. Its GPIO (General Purpose Input/Output) pins can be set HIGH (3.3V) or LOW (0V) from software. Each pin can source approximately **12mA** safely (absolute max 40mA). Since 3.3V is lower than 12V, the resistor calculation changes compared to Lab 2.
+
+## Components
+
+- ESP32 DevKit
+- 1× LED + appropriate resistor
+- USB cable
+- Breadboard and jumper wires
+
+## Tasks
+
+1. **Calculate** the appropriate resistor for an LED at 10mA from 3.3V.
+2. Connect the LED + resistor between a GPIO pin (e.g. GPIO 2) and GND.
+3. Upload the following program and verify the LED blinks:
+
+```cpp
+const int ledPin = 2;
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(ledPin, HIGH);
+  delay(500);
+  digitalWrite(ledPin, LOW);
+  delay(500);
+}
+```
+
+4. **Measure** the voltage on the GPIO pin when HIGH and when LOW using the multimeter.
+5. Modify the blink rate. Try 50ms on / 50ms off — can you still see it blinking?
+
+## Questions
+
+1. The ESP32 operates at 3.3V, but the car's motor runs at 12V. How can we bridge this gap? (Hint: this is the topic of Labs 6–9.)
+2. What would happen if you connected the 12V motor directly to a GPIO pin?
+3. Why is the ESP32's 3.3V logic level important to keep in mind throughout the project?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include your resistor calculation, measured voltages, the code you used, and answers to the questions. Render to PDF and upload.

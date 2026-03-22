@@ -1,0 +1,304 @@
+---
+title: "Lab 0 – VS Code + PlatformIO Setup"
+canvas:
+  type: assignment
+  published: false
+  points: 1
+  grading_type: pass_fail
+  submission_types: [online_upload]
+  allowed_extensions: [pdf, png, jpg, jpeg]
+---
+
+## Learning Goals
+
+- Set up VS Code with PlatformIO as your development environment
+- Understand the PlatformIO project structure and `platformio.ini`
+- Build, upload, and monitor an ESP32 program
+- Use the serial terminal for communication and debugging
+
+## Why PlatformIO instead of Arduino IDE?
+
+You are most likely already familiar with VS Code from your programming courses. **PlatformIO** is a VS Code extension that replaces the Arduino IDE with significant advantages:
+
+| Feature | Arduino IDE | PlatformIO (VS Code) |
+|---------|------------|---------------------|
+| Code editor | Basic | Full VS Code (autocomplete, multi-cursor, git, etc.) |
+| Build speed | Slow (recompiles everything) | Fast (incremental builds, cached) |
+| Library management | Manual zip files | One-line install in `platformio.ini` |
+| Multiple boards | Switch manually | Per-project config |
+| Terminal access | None | Integrated terminal with `pio` CLI |
+
+Arduino IDE is simple but becomes frustrating as projects grow. PlatformIO gives you a professional workflow with powerful tools while still being beginner-friendly. It’s the best way to learn embedded development and will be used throughout the course.
+
+
+
+## Part 1: Installation
+
+### Install the development tools
+Run this command in PowerShell to install the development tools:
+```
+irm https://raw.githubusercontent.com/cenmir/python-dev-installer/main/download.ps1 | iex
+```
+
+
+### 1. Install PlatformIO Extension
+
+1. Open VS Code
+2. Go to **Extensions** (Ctrl+Shift+X)
+3. Search for **"PlatformIO IDE"**
+4. Click **Install** — this installs PlatformIO Core (the CLI) and the GUI automatically
+5. Wait for installation to complete (may take a few minutes on first run)
+6. **Restart VS Code** when prompted
+
+### 2. Create your first project
+
+1. Click the **PlatformIO icon** (alien head) in the left sidebar
+2. Click **"Create New Project"**
+3. Fill in:
+   - **Name:** `hello-esp32`
+   - **Board:** `Espressif ESP32 Dev Module`
+   - **Framework:** `Arduino`
+4. Click **Finish** — PlatformIO creates the project structure
+
+### 3. Understand the project structure
+
+```
+hello-esp32/
+├── src/
+│   └── main.cpp          ← Your code goes here
+├── lib/                  ← Project-specific libraries
+├── include/              ← Header files
+├── test/                 ← Unit tests
+├── platformio.ini        ← Project configuration
+└── .pio/                 ← Build cache (auto-generated, do NOT commit)
+```
+
+The most important file is **`platformio.ini`** — it defines your board, framework, libraries, and upload settings.
+
+## Part 2: Understanding `platformio.ini`
+
+Open `platformio.ini`. It should look like this:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+```
+
+This is the minimal config. Let's add the settings you'll need throughout the course:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+
+; Serial monitor baud rate — MUST match Serial.begin() in your code
+monitor_speed = 115200
+
+; Upload speed — faster upload to the board
+upload_speed = 921600
+
+; Libraries — add dependencies here (no manual downloads!)
+lib_deps =
+    madhephaestus/ESP32Servo@^3.0.6
+```
+
+### Key `platformio.ini` options
+
+| Option | What it does | Example |
+|--------|-------------|---------|
+| `monitor_speed` | Sets baud rate for serial monitor | `115200` |
+| `upload_speed` | Upload baud rate (faster = quicker uploads) | `921600` |
+| `lib_deps` | Libraries to install automatically | `madhephaestus/ESP32Servo@^3.0.6` |
+| `monitor_filters` | Filters for serial output | `esp32_exception_decoder` |
+| `board` | Target board | `esp32dev`, `seeed_xiao_esp32s3` |
+
+### Adding libraries
+
+To add a library, simply add it under `lib_deps`. PlatformIO downloads it automatically on next build.
+
+**Find libraries** at [registry.platformio.org](https://registry.platformio.org) or use the terminal:
+
+```bash
+pio pkg search "AS5600"
+```
+
+Example `lib_deps` for the full RC car project:
+
+```ini
+lib_deps =
+    madhephaestus/ESP32Servo@^3.0.6
+    robtillaart/AS5600@^0.6.1
+    ESP Async WebServer
+    AsyncTCP
+```
+
+## Part 3: Write, Build, Upload
+
+### 1. Write the code
+
+Open `src/main.cpp` and replace the contents with:
+
+```cpp
+#include <Arduino.h>
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);  // Give serial monitor time to connect
+  Serial.println("Hello from ESP32!");
+  Serial.println("Type something and press Enter...");
+}
+
+void loop() {
+  if (Serial.available()) {
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+
+    if (input == "hello") {
+      Serial.println("Hi there! ESP32 is alive.");
+    } else if (input == "info") {
+      Serial.print("Chip model: ");
+      Serial.println(ESP.getChipModel());
+      Serial.print("CPU freq: ");
+      Serial.print(ESP.getCpuFreqMHz());
+      Serial.println(" MHz");
+      Serial.print("Free heap: ");
+      Serial.print(ESP.getFreeHeap());
+      Serial.println(" bytes");
+    } else if (input == "led on") {
+      pinMode(2, OUTPUT);
+      digitalWrite(2, HIGH);
+      Serial.println("LED ON");
+    } else if (input == "led off") {
+      pinMode(2, OUTPUT);
+      digitalWrite(2, LOW);
+      Serial.println("LED OFF");
+    } else {
+      Serial.print("Unknown command: '");
+      Serial.print(input);
+      Serial.println("'. Try: hello, info, led on, led off");
+    }
+  }
+}
+```
+
+### 2. Build
+
+Click the **checkmark** (✓) in the bottom toolbar, or use the terminal:
+
+```bash
+pio run
+```
+
+This compiles your code. The first build takes longer (downloads toolchain). Subsequent builds are **much faster** because PlatformIO only recompiles changed files.
+
+### 3. Upload
+
+Connect the ESP32 via USB. Click the **right arrow** (→) in the bottom toolbar, or:
+
+```bash
+pio run --target upload
+```
+
+::: {.callout-tip}
+If upload fails, you may need to hold the **BOOT** button on the ESP32 while uploading. Some boards require this; newer ones auto-enter bootloader mode.
+:::
+
+### 4. Open Serial Monitor
+
+Click the **plug icon** in the bottom toolbar, or:
+
+```bash
+pio device monitor
+```
+
+You should see:
+
+```
+Hello from ESP32!
+Type something and press Enter...
+```
+
+Now type commands: `hello`, `info`, `led on`, `led off`.
+
+::: {.callout-important}
+The baud rate in `monitor_speed` (in `platformio.ini`) **must match** the value in `Serial.begin()` in your code. If they don't match, you'll see garbage characters. We use **115200** throughout this course.
+:::
+
+## Part 4: The `pio` CLI
+
+PlatformIO has a powerful command-line interface. Open the VS Code terminal (Ctrl+\`) and try:
+
+| Command | What it does |
+|---------|-------------|
+| `pio run` | Build the project |
+| `pio run -t upload` | Build and upload |
+| `pio device monitor` | Open serial monitor |
+| `pio run -t upload && pio device monitor` | Upload then immediately monitor |
+| `pio pkg install -l "robtillaart/AS5600"` | Install a library |
+| `pio pkg search "servo"` | Search for libraries |
+| `pio device list` | List connected devices (find COM port) |
+| `pio run -t clean` | Clean build cache |
+
+The most useful combo is:
+
+```bash
+pio run -t upload && pio device monitor
+```
+
+This uploads your code and immediately opens the serial monitor — the fastest edit-upload-test cycle.
+
+## Part 5: Serial Terminal Tips
+
+### Sending commands from the terminal
+
+In the serial monitor, you can type text and press **Enter** to send it to the ESP32. This is how `Serial.readStringUntil('\n')` works in the code above.
+
+### Line endings
+
+By default, PlatformIO sends `\n` (newline) when you press Enter. If your code expects `\r\n` (carriage return + newline), add to `platformio.ini`:
+
+```ini
+monitor_eol = CRLF
+```
+
+### Filtering output
+
+Add filters to make the serial output more useful:
+
+```ini
+; Adds timestamps to every line
+monitor_filters = time
+
+; Decodes ESP32 crash stack traces into readable function names
+monitor_filters = esp32_exception_decoder
+```
+
+### Resetting the board
+
+Press **Ctrl+T, Ctrl+R** in the serial monitor to reset the ESP32 without unplugging.
+
+## Tasks
+
+::: {.callout-note}
+## Checklist
+1. [ ] Install PlatformIO in VS Code
+2. [ ] Create a new ESP32 project
+3. [ ] Edit `platformio.ini` — set `monitor_speed = 115200` and `upload_speed = 921600`
+4. [ ] Write the "Hello from ESP32" program in `src/main.cpp`
+5. [ ] **Build** the project (✓ button or `pio run`)
+6. [ ] **Upload** to the ESP32 (→ button or `pio run -t upload`)
+7. [ ] Open the **Serial Monitor** and verify "Hello from ESP32!" appears
+8. [ ] Type `hello`, `info`, `led on`, `led off` — verify responses
+9. [ ] Add `madhephaestus/ESP32Servo@^3.0.6` to `lib_deps` and rebuild — verify it compiles without errors
+10. [ ] Run `pio run -t upload && pio device monitor` from the terminal — experience the fast workflow
+:::
+
+## Submission
+
+Upload a **screenshot** showing:
+
+- Your VS Code with the project open
+- The serial monitor showing the ESP32 responding to your typed commands

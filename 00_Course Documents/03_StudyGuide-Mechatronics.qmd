@@ -1,0 +1,165 @@
+---
+title: "Course PM — Mechatronics (TMRK16)"
+canvas:
+  type: study_guide
+  preprocess: true
+  published: true
+  pdf:
+    filename: "CoursePM.pdf"
+    title: "Course PM (PDF)"
+    published: true
+---
+
+# Introduction
+
+![](../graphics/KursPM-Mekatronik.png)
+
+Welcome to Mechatronics (TMRK16), a hands-on 7.5 ECTS course where you work in groups of three to design and build a remote-controlled car.
+
+No prior knowledge of electronics is required. You will learn **Arduino-style C/C++** for programming the ESP32 microcontroller. See the [RC Car Project](../08_RC Car Project/08_RC Car Project.qmd) for full details on what you will build.
+
+# Schedule
+
+See [TimeEdit](https://cloud.timeedit.net/ju/web/open/riq0CdABQD9ZDAQt7A7FF83Q67Z92Z89424t500QE5oD4DA0004155yYQY5ZQQ7ZZ2c6vQQY9w07Xp91Zq60o.html) for dates, times, and rooms.
+
+| Week | Lectures | Labs | Project / Other |
+|:-----|:---------|:-----|:----------------|
+| 13 | Course intro. Electronics fundamentals | Lab 0 (PlatformIO), Labs 1–3 (LED, Ohm's law, ESP32) | Group formation, component box checkout, group contract<br> Get to know the car project |
+| 14 | Batteries, power, voltage regulation | Labs 4–5 (PWM, potentiometer/ADC) |  |
+| 15 | Semiconductors, transistor as switch | Labs 6–7 (MOSFET, level shifter) |  |
+| 16 | Motor control, H-bridge theory | Labs 8–9 (H-bridge: switches, then MOSFETs) |  |
+| 17 | Communication protocols, ESP-NOW | Labs 10–12 (BTS7960, servo, battery monitor) | |
+| 18 | Sensors, closed-loop control | Labs 13–16 (XIAO remote, ESP-NOW, web server, AS5600) | System integration |
+| 19–21 | Project support | Lab rooms available | Project work |
+| 22 | | | **Project presentation & examination (Thu + Fri)** |
+
+Students are expected to work on the project outside of scheduled lab hours. Manage your time and activities carefully — working in parallel and communicating within the group is key to success.
+
+# Examination
+
+All learning outcomes are examined through the **project** and the **labs**. The project grade determines the course grade.
+
+| Component | Credits | Individual/Group | Grade |
+|:----------|:--------|:-----------------|:------|
+| Project^1^ | 4.5 ECTS | Group | 5/4/3/F |
+| Laboratory work^2^ | 3 ECTS | Group | P/F |
+
+^1^ Determines the course grade, which is issued only when all components are approved.\
+^2^ Labs are carried out in groups.
+
+## Laboratory Work (3 ECTS, Pass/Fail)
+
+17 labs (Lab 0-16), carried out in groups:
+
+- **Labs 0-9** (fundamentals): Submit a short lab report written in Quarto, rendered to PDF.
+- **Labs 10-16** (project-related): Demonstrate working hardware at your bench, or upload a photo/video.
+
+All labs must be passed.
+
+## Project (4.5 ECTS, graded 5/4/3/Fail)
+
+The project is examined through:
+
+1. **Demonstration.** Show the car running, explain the design, electronics, and code.
+2. **Oral questions.** The examiner asks questions and **randomly selects** who answers. The group's grade is based on the selected individuals' performance.
+
+Every member must be able to present and defend *all* parts of the solution.
+
+## Re-examination
+
+Re-examination follows the schedule at <https://ju.se/student/studier/terminstider/terminstider-jth.html> (study period 4). Covers lab completions and a new project demonstration.
+
+# Grading Criteria
+
+The examiner **randomly selects** who answers each question. The criteria below map directly to the course's intended learning outcomes.
+
+| ILO | Fail | 3 | 4 | 5 |
+|:----|:-----|:--|:--|:--|
+| Knowledge of voltage regulation, batteries, Ohm's law, Kirchhoff's laws | Cannot explain basic concepts such as voltage, current, and resistance in the system. | Can explain the electrical concepts and calculations in the system. | Can relate concepts to each other and explain why specific component values were chosen. | Can analyze power budgets, losses, and thermal management in depth. |
+| Knowledge of sensors and actuators | Cannot describe how the sensors and actuators in the car work. | Can describe function and purpose of each sensor and actuator. | Can compare alternatives and justify choices. | Can critically evaluate performance, limitations, and propose improvements. |
+| Knowledge of communication protocols | Cannot explain how communication between components works. | Can explain the protocols used and their roles. | Can compare protocols and justify why each was chosen. | Can discuss latency, bandwidth, reliability, and error handling. |
+| Skill in microcontroller programming | The car does not function, or the code cannot be explained. | The car works and the code's structure and logic can be explained. | Code is well-structured; design choices can be explained. | Code handles edge cases, timeouts, and failsafes; can reason about improvements. |
+| Skill in using multimeter and oscilloscope | Cannot demonstrate or explain how instruments were used. | Can use multimeter and oscilloscope for basic measurements. | Can interpret results and use them to validate design decisions. | Can independently troubleshoot complex problems with instruments. |
+| Skill in circuit construction and soldering | Wiring is unreliable or missing. Cannot solder or explain connections. | All connections work. Can solder components and add connectors. Voltage divider circuit is functional. | Wiring is tidy with proper connectors, strain relief, and clear signal routing. Soldering joints are clean. | Wiring is production-quality. Can discuss connector choices, wire gauging, and circuit protection. |
+| Ability to select sensors and actuators | Cannot motivate the choice of components. | Can explain why each component was selected. | Can compare alternatives and discuss trade-offs. | Can optimize selections considering cost, performance, and availability. |
+| Ability to implement control | Motor simply reverses when throttle goes negative. No braking logic. | Throttle logic distinguishes forward, coast, and brake. Negative input while moving forward brakes instead of reversing. Reverse only engages from standstill. | Braking uses the BTS7960 brake mode (low-side short). Battery cutoff and signal-loss failsafe implemented. | Speed feedback from AS5600 used for telemetry or closed-loop control. Bonus: ABS (release brake on wheel lock-up). |
+
+# Equipment and Responsibility
+
+Each group receives a component box at the start of the course (see separate receipt list). The box contains:
+
+- 775 DC motor, servo motor (DS3218), BTS7960 motor driver
+- ESP32 DevKit (car), XIAO ESP32 (remote controller)
+- Joystick modules, 3S LiPo battery (car), 1S LiPo battery (remote)
+- 12V power supply, breadboard with power rails, buck converter, springs
+
+A shared supply of electrical components (resistors, capacitors, wires, etc.) is available in the lab.
+
+**All equipment must be returned** in undamaged condition by end of course (June 2026), or by December 2026 by agreement. **Gross negligence may result in replacement costs.**
+
+## LiPo Battery Safety
+
+- **Do not use the battery before Mirza teaches you how to handle it**
+- The batteries are stored in the battery closet when not in use
+- Ask Mirza about charging the batteries. Pressing random buttons on the charger can lead to a battery fire
+- Do not drop, puncture, put in fire, leave in the sun, step on, throw, chew, or breathe in the batteries
+- Do not leave plugged into a device when not in use. It will discharge
+- Do not discharge below 3.3V per cell (9.9V total for 3S)
+- Inspect before use. Do not use swollen or damaged batteries
+
+# RC Car Project {#sec-project}
+
+Design and build a remote-controlled car from scratch: 3D-printed chassis with suspension, 775 DC motor, servo steering, LiPo battery with voltage monitoring, and wireless control via your phone. The car follows you through several courses in your programme — mechanics, solid mechanics, and machine elements.
+
+See the full [RC Car Project assignment](../08_RC Car Project/08_RC Car Project.qmd) for requirements, design guidelines, and deliverables.
+
+# Academic Integrity
+
+Using unauthorized aids during examination is cheating. This includes phones, notes, or unauthorized materials. Attempting to cheat counts as a violation even if the aids were not used.
+
+Copying text without citation is plagiarism. Review the library's anti-plagiarism guide (Källkoll: Studentens guide till att undvika plagiering).
+
+**Irresponsible use of AI**, such as submitting AI-generated results without understanding, is also considered cheating.
+
+All cheating and plagiarism leads to a report with possible disciplinary action. Details: <https://ju.se/om-oss/organisation-och-ledning/disciplin--och-avskiljandenamnd.html>.
+
+## Artificial Intelligence
+
+AI tools (ChatGPT, Claude, Copilot) are **encouraged** as learning aids. They are useful for debugging, explaining concepts, and generating code starting points.
+
+You are always responsible for understanding everything you submit and present. At the oral exam, your grade depends on your individual understanding, not what AI generated.
+
+# Course Literature
+
+## Reference (not required to purchase)
+
+Title: Mechatronics\
+Author: William Bolton\
+ISBN: 9789353065881
+
+Title: Practical Electronics for Inventors\
+Author: Paul Scherz, Simon Monk\
+ISBN: 9781259587542
+
+## Recommended Videos
+
+- **Ben Eater, Digital Electronics** (YouTube series, available as a Canvas module)
+- **Writing Documentation with Quarto**: <https://python.ju.se/ProgrammingFundamentals/writing_documentation.html>
+
+# Course Evaluation 
+
+A course evaluation will be conducted at the end of the course. Intermediate evaluations may be run. Improvements may be made during the course if they do not conflict with the course plan.
+
+*This course is offered for the first time in Spring 2026. No previous evaluation exists.*
+
+# Teaching Staff
+
+| Name | Role | Image | Link |
+|:-----|:-----|:------|:-----|
+| Mirza Cenanovic | Course responsible, Lecturer, Iron Man | ../graphics/Mirza.png | https://ju.se/personinfo.html?sign=cenmir |
+| Johan Jansson | Lecturer, EXAMINATOR | ../graphics/Johan.png | https://ju.se/personinfo.html?sign=janjoh |
+| Fredrik Erling | Señior Lecturer | ../graphics/Fredrik.png | https://ju.se/personinfo.html?sign=ERLFRE |
+
+# Research Connection
+
+The research connection is described in the education plan for the respective programme: <https://ju.se/student/studier/utbildningsplaner-med-kursplaner.html>.

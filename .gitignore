@@ -1,0 +1,15 @@
+/.quarto/
+**/*.quarto_ipynb
+.canvas_sync_map.json
+privateCanvasToken
+*.html
+*.pdf
+!00_Course Documents/*.pdf
+*.aux
+*.log
+*.tex
+*_files/
+*_processed*
+tmp-*
+_temp_*
+.vscode/
