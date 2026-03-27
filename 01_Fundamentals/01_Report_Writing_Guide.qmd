@@ -5,10 +5,6 @@ canvas:
   published: true
 ---
 
-## Supplementary Material
-
-We recommend watching the **"Basic digital electronics with Ben Eater"** video series (available as a Canvas module) alongside Labs 1–9. The videos cover the same fundamental concepts — voltage, current, resistors, transistors, MOSFETs — with excellent visual explanations that complement the hands-on lab work.
-
 ## Writing Lab Reports in Quarto
 
 For the initial lab sessions (Labs 1–9) in this course, you will submit a short **lab report** as a rendered PDF. We use [Quarto](https://quarto.org) to write reports — it lets you combine text, equations, figures, and code in a single document.
@@ -21,7 +17,7 @@ For a complete guide on writing reports in Quarto, see:
 
 Run this command in PowerShell to install the development tools
 
-```
+```powershell
 irm https://raw.githubusercontent.com/cenmir/python-dev-installer/main/download.ps1 | iex
 ```
 

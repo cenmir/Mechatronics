@@ -1,12 +1,21 @@
 ---
-title: "Lab 16 – AS5600 Magnetic Encoder (I2C)"
 canvas:
-  type: assignment
-  published: false
-  points: 1
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - mp4
+  - mov
   grading_type: pass_fail
-  submission_types: [online_upload]
-  allowed_extensions: [pdf, png, jpg, jpeg, mp4, mov]
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: false
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 16 – AS5600 Magnetic Encoder (I2C)
 ---
 
 ## Learning Goals

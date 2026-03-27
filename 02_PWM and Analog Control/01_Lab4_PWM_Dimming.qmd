@@ -1,12 +1,16 @@
 ---
-title: "Lab 4 – PWM Dimming from ESP32"
 canvas:
-  type: assignment
-  published: false
-  points: 1
+  allowed_extensions:
+  - pdf
   grading_type: pass_fail
-  submission_types: [online_upload]
-  allowed_extensions: [pdf]
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: false
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 4 – PWM Dimming from ESP32
 ---
 
 ## Learning Goals

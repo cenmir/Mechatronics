@@ -1,12 +1,16 @@
 ---
-title: "Lab 2 – LED from 12V with Resistor"
 canvas:
-  type: assignment
-  published: false
-  points: 1
+  allowed_extensions:
+  - pdf
   grading_type: pass_fail
-  submission_types: [online_upload]
-  allowed_extensions: [pdf]
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: true
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 2 – LED from 12V with Resistor
 ---
 
 ## Learning Goals

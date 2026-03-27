@@ -1,15 +1,19 @@
 ---
-title: "RC Car Project"
 canvas:
-  type: assignment
-  published: true
-  assignment_group: "Project"
-  points_possible: 5
-  grading_type: "letter_grade"
+  allowed_extensions:
+  - pptx
+  - zip
+  assignment_group: Project
   grading_standard_id: 7051
-  submission_types: ["online_upload"]
-  allowed_extensions: ["pptx", "zip"]
+  grading_type: letter_grade
   group_assignment: true
+  group_set: Project Groups
+  points: 5
+  published: true
+  submission_types:
+  - online_upload
+  type: assignment
+title: RC Car Project
 ---
 
 # Overview
@@ -116,6 +120,8 @@ Print wheel rims in **PLA** and tires in **TPU** for traction and shock absorpti
 - **Carbon fibre reinforced polycarbonate (CF-PC)**: For critical structural parts that need impact resistance and toughness (motor mounts, suspension arms, gear housings)
 - **TPU**: For tires — flexible, high grip, absorbs vibration. Printed without top and bottom layers using gyroid infill 5-20% for maximum flexibility
 
+![Left: TPU Easy Flex, cheaper and stiffer. Right: TPU Pro Matte, expensive and soft](graphics/08_RC Car Project.png)
+
 **Printing with anything other than PLA requires training by Mirza.** Contact Mirza before printing in PETG, CF-PC, or TPU. In later courses on material mechanics, you will analyze how material choice affects structural performance.
 
 ### Printer Assignments
@@ -192,3 +198,7 @@ Keep your files well-organized with a clear folder structure. Name the zip `Grou
 - Your code accessible for review
 
 See the [Study Guide](../00_Course Documents/03_StudyGuide-Mechatronics.qmd) for grading criteria and examination details.
+
+## Workshop Music
+
+Working hard requires learning the lyrics and singing [this sea shanty](https://suno.com/s/I7AaStym0SRtpBfm)

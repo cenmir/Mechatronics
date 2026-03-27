@@ -1,12 +1,19 @@
 ---
-title: "Lab 0 – VS Code + PlatformIO Setup"
 canvas:
-  type: assignment
-  published: false
-  points: 1
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
   grading_type: pass_fail
-  submission_types: [online_upload]
-  allowed_extensions: [pdf, png, jpg, jpeg]
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: true
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 0 – VS Code + PlatformIO Setup
 ---
 
 ## Learning Goals
@@ -26,7 +33,7 @@ You are most likely already familiar with VS Code from your programming courses.
 | Build speed | Slow (recompiles everything) | Fast (incremental builds, cached) |
 | Library management | Manual zip files | One-line install in `platformio.ini` |
 | Multiple boards | Switch manually | Per-project config |
-| Terminal access | None | Integrated terminal with `pio` CLI |
+| Terminal access | None | Integrated terminal |
 
 Arduino IDE is simple but becomes frustrating as projects grow. PlatformIO gives you a professional workflow with powerful tools while still being beginner-friendly. It’s the best way to learn embedded development and will be used throughout the course.
 
@@ -36,7 +43,7 @@ Arduino IDE is simple but becomes frustrating as projects grow. PlatformIO gives
 
 ### Install the development tools
 Run this command in PowerShell to install the development tools:
-```
+```powershell
 irm https://raw.githubusercontent.com/cenmir/python-dev-installer/main/download.ps1 | iex
 ```
 
@@ -100,9 +107,15 @@ monitor_speed = 115200
 ; Upload speed — faster upload to the board
 upload_speed = 921600
 
+; Serial monitor: echo what you type so you can see your own commands
+monitor_echo = true
+
+; Serial monitor: send data when you press Enter (not character by character)
+monitor_filters = send_on_enter
+
 ; Libraries — add dependencies here (no manual downloads!)
 lib_deps =
-    madhephaestus/ESP32Servo@^3.0.6
+    robtillaart/AS5600@^0.6.1
 ```
 
 ### Key `platformio.ini` options
@@ -111,29 +124,20 @@ lib_deps =
 |--------|-------------|---------|
 | `monitor_speed` | Sets baud rate for serial monitor | `115200` |
 | `upload_speed` | Upload baud rate (faster = quicker uploads) | `921600` |
-| `lib_deps` | Libraries to install automatically | `madhephaestus/ESP32Servo@^3.0.6` |
-| `monitor_filters` | Filters for serial output | `esp32_exception_decoder` |
+| `monitor_echo` | Shows what you type in the serial monitor | `true` |
+| `monitor_filters` | Filters for serial input/output | `send_on_enter` |
+| `lib_deps` | Libraries to install automatically | `robtillaart/AS5600@^0.6.1` |
 | `board` | Target board | `esp32dev`, `seeed_xiao_esp32s3` |
+
+`monitor_echo = true` lets you see what you're typing in the serial monitor — without it, your keystrokes are sent but invisible, which is confusing.
+
+`monitor_filters = send_on_enter` buffers your input and only sends it when you press **Enter**. Without this filter, each character is sent immediately as you type, which doesn't work well with `Serial.readStringUntil('\n')`.
 
 ### Adding libraries
 
 To add a library, simply add it under `lib_deps`. PlatformIO downloads it automatically on next build.
 
-**Find libraries** at [registry.platformio.org](https://registry.platformio.org) or use the terminal:
-
-```bash
-pio pkg search "AS5600"
-```
-
-Example `lib_deps` for the full RC car project:
-
-```ini
-lib_deps =
-    madhephaestus/ESP32Servo@^3.0.6
-    robtillaart/AS5600@^0.6.1
-    ESP Async WebServer
-    AsyncTCP
-```
+**Find libraries** at [registry.platformio.org](https://registry.platformio.org).
 
 ## Part 3: Write, Build, Upload
 
@@ -186,33 +190,23 @@ void loop() {
 
 ### 2. Build
 
-Click the **checkmark** (✓) in the bottom toolbar, or use the terminal:
+Click the **checkmark** (✓) in the bottom toolbar to compile your code. The first build takes longer (downloads toolchain). Subsequent builds are **much faster** because PlatformIO only recompiles changed files.
 
-```bash
-pio run
-```
+### 3. Connect and Upload
 
-This compiles your code. The first build takes longer (downloads toolchain). Subsequent builds are **much faster** because PlatformIO only recompiles changed files.
+Connect the ESP32 to your PC using a USB-C cable.
 
-### 3. Upload
+![Pin-out](graphics/02_Lab0_PlatformIO_Setup.png)
 
-Connect the ESP32 via USB. Click the **right arrow** (→) in the bottom toolbar, or:
-
-```bash
-pio run --target upload
-```
-
-::: {.callout-tip}
-If upload fails, you may need to hold the **BOOT** button on the ESP32 while uploading. Some boards require this; newer ones auto-enter bootloader mode.
+::: {.callout-important}
+Our ESP32 boards require you to hold the **BOOT** button (the right button in the picture above) during the connection phase. When you click upload, **hold BOOT** until you see the upload progress start, then release it. If you don't, the upload will fail with a connection error.
 :::
+
+Click the **right arrow** (→) in the bottom toolbar to upload.
 
 ### 4. Open Serial Monitor
 
-Click the **plug icon** in the bottom toolbar, or:
-
-```bash
-pio device monitor
-```
+Click the **plug icon** in the bottom toolbar to open the serial monitor.
 
 You should see:
 
@@ -227,34 +221,15 @@ Now type commands: `hello`, `info`, `led on`, `led off`.
 The baud rate in `monitor_speed` (in `platformio.ini`) **must match** the value in `Serial.begin()` in your code. If they don't match, you'll see garbage characters. We use **115200** throughout this course.
 :::
 
-## Part 4: The `pio` CLI
+## Part 4: Serial Terminal Tips
 
-PlatformIO has a powerful command-line interface. Open the VS Code terminal (Ctrl+\`) and try:
+### `monitor_filters = send_on_enter`
 
-| Command | What it does |
-|---------|-------------|
-| `pio run` | Build the project |
-| `pio run -t upload` | Build and upload |
-| `pio device monitor` | Open serial monitor |
-| `pio run -t upload && pio device monitor` | Upload then immediately monitor |
-| `pio pkg install -l "robtillaart/AS5600"` | Install a library |
-| `pio pkg search "servo"` | Search for libraries |
-| `pio device list` | List connected devices (find COM port) |
-| `pio run -t clean` | Clean build cache |
+By default, the serial monitor sends each character to the ESP32 **as you type it**. This doesn't work well with `Serial.readStringUntil('\n')`, which expects a complete line. The `send_on_enter` filter buffers your input and only sends it when you press **Enter** — exactly what our code expects.
 
-The most useful combo is:
+### `monitor_echo = true`
 
-```bash
-pio run -t upload && pio device monitor
-```
-
-This uploads your code and immediately opens the serial monitor — the fastest edit-upload-test cycle.
-
-## Part 5: Serial Terminal Tips
-
-### Sending commands from the terminal
-
-In the serial monitor, you can type text and press **Enter** to send it to the ESP32. This is how `Serial.readStringUntil('\n')` works in the code above.
+Without this setting, your keystrokes are sent to the ESP32 but **not shown on screen** — so you're typing blind. Setting `monitor_echo = true` displays what you type in the serial monitor so you can see your commands as you write them.
 
 ### Line endings
 
@@ -264,9 +239,7 @@ By default, PlatformIO sends `\n` (newline) when you press Enter. If your code e
 monitor_eol = CRLF
 ```
 
-### Filtering output
-
-Add filters to make the serial output more useful:
+### Other useful filters
 
 ```ini
 ; Adds timestamps to every line
@@ -288,12 +261,12 @@ Press **Ctrl+T, Ctrl+R** in the serial monitor to reset the ESP32 without unplug
 2. [ ] Create a new ESP32 project
 3. [ ] Edit `platformio.ini` — set `monitor_speed = 115200` and `upload_speed = 921600`
 4. [ ] Write the "Hello from ESP32" program in `src/main.cpp`
-5. [ ] **Build** the project (✓ button or `pio run`)
-6. [ ] **Upload** to the ESP32 (→ button or `pio run -t upload`)
+5. [ ] **Build** the project (✓ button)
+6. [ ] **Upload** to the ESP32 (→ button)
 7. [ ] Open the **Serial Monitor** and verify "Hello from ESP32!" appears
 8. [ ] Type `hello`, `info`, `led on`, `led off` — verify responses
-9. [ ] Add `madhephaestus/ESP32Servo@^3.0.6` to `lib_deps` and rebuild — verify it compiles without errors
-10. [ ] Run `pio run -t upload && pio device monitor` from the terminal — experience the fast workflow
+9. [ ] Add `robtillaart/AS5600@^0.6.1` to `lib_deps` and rebuild — verify it compiles without errors
+10. [ ] Upload and open the serial monitor — verify the full build-upload-monitor workflow
 :::
 
 ## Submission

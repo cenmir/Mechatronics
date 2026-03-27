@@ -1,12 +1,16 @@
 ---
-title: "Lab 3 – LED from ESP32"
 canvas:
-  type: assignment
-  published: false
-  points: 1
+  allowed_extensions:
+  - pdf
   grading_type: pass_fail
-  submission_types: [online_upload]
-  allowed_extensions: [pdf]
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: true
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 3 – LED from ESP32
 ---
 
 ## Learning Goals
@@ -28,6 +32,75 @@ The ESP32 is the brain of the RC car. Its GPIO (General Purpose Input/Output) pi
 
 <iframe src="https://wokwi.com/projects/459211802854439937?embed=1" width="100%" height="500" style="border: 1px solid #ccc; border-radius: 8px;"></iframe>
 
+Click [here](https://wokwi.com/projects/459211802854439937) to open the project in Wokwi and experiment with the code and circuit!
+
+## ESP32 Pinout
+
+![ESP32 Pinout](graphics/05_Lab3_LED_ESP32.png)
+![](graphics/05_Lab3_LED_ESP32-1.png)
+
+### GPIO pins
+
+The ESP32 has 25 GPIO (General Purpose Input/Output) pins. Each pin can be configured as a digital input or output from your code. Some pins also support analog input (ADC), PWM output, or capacitive touch sensing — but for now, we only care about basic digital output: setting a pin HIGH (3.3V) or LOW (0V).
+
+![GPIO pins](graphics/05_Lab3_LED_ESP32-2.png)
+
+### Which ESP32 GPIOs are safe to use?
+
+Not all GPIOs are created equal. Some are connected to the flash memory, some behave unexpectedly during boot, and some are input-only. The table below classifies each pin so you know which ones to reach for first.
+
+| GPIO | Status | Notes |
+|------|--------|-------|
+| 4, 13, 14, 16, 17 | Safe | No restrictions |
+| 18–27 | Safe | No restrictions |
+| 32–33 | Safe | No restrictions |
+| 0 | Caution | Must be HIGH during boot, LOW for programming |
+| 2 | Caution | Must be LOW during boot, connected to on-board LED |
+| 5 | Caution | Must be HIGH during boot |
+| 12 | Caution | Must be LOW during boot |
+| 15 | Caution | Must be HIGH during boot, prevents startup log if pulled LOW |
+| 1 (TX0), 3 (RX0) | Avoid | Used for USB serial communication |
+| 6–11 | Avoid | Connected to internal flash memory |
+| 34, 35, 36, 39 | Avoid | Input only — cannot be set as output |
+
+**Safe** pins are your go-to — use these first. **Caution** pins work but may cause issues during boot (e.g. preventing upload or causing unexpected output). **Avoid** pins are either reserved for internal use or physically unable to drive outputs.
+
+::: {.callout-tip}
+For this course, stick to the **safe** pins whenever possible. GPIO 4, 13, 14, 16–27, 32, and 33 give you plenty to work with.
+:::
+
+### Input-only GPIOs
+
+GPIO 34, 35, 36 (VP), and 39 (VN) are **input only** — they cannot drive an output. Use them for reading sensors or buttons, but never for controlling LEDs or motors. They also lack internal pull-up/pull-down resistors, so you need external resistors if using them as inputs.
+
+### ADC Pins (Analog Input)
+
+Some GPIO pins can read analog voltages using the ESP32’s built-in ADC (Analog-to-Digital Converter). The ADC is 12-bit, meaning it maps 0–3.3V to an integer value 0–4095 (resolution of ~0.8 mV per step). You read an analog pin with `analogRead(pin)`.
+
+![Pins that can be used for analog reading](graphics/05_Lab3_LED_ESP32-3.png)
+
+The ESP32 has two ADC units — **ADC1** and **ADC2** — across 15 channels total.
+
+::: {.callout-warning}
+**ADC2 pins cannot be used when Wi-Fi is active.** Since the RC car project uses Wi-Fi, only use **ADC1** pins (GPIO 32–36, 39) for analog input.
+:::
+
+### I2C Pins
+
+I2C is a two-wire communication protocol used to talk to sensors and other devices. It uses a **SDA** (data) and **SCL** (clock) line. The ESP32 can use any GPIO for I2C, but the default pins are **GPIO 21 (SDA)** and **GPIO 22 (SCL)** — most libraries and examples assume these, so stick with them unless you have a reason not to.
+
+Later in the course, we will use I2C to read the **AS5600** magnetic position sensor for measuring wheel speed of the RC car.
+
+### PWM Pins
+
+Any GPIO that supports output (i.e. all except the input-only pins) can generate a PWM signal. PWM (Pulse Width Modulation) rapidly switches a pin on and off to simulate an analog output — this is how we control LED brightness and motor speed. The ESP32 has 16 independent PWM channels, so you can drive multiple outputs at different duty cycles simultaneously.
+
+We will use PWM extensively starting from Lab 4 (LED dimming) and later for motor control via the H-bridge.
+
+
+### More info on the ESP
+
+See [here](https://lastminuteengineers.com/esp32-pinout-reference/)
 
 ## Tasks
 
