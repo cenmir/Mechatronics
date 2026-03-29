@@ -200,6 +200,8 @@ Connect the ESP32 to your PC using a USB-C cable.
 
 ::: {.callout-important}
 Our ESP32 boards require you to hold the **BOOT** button (the right button in the picture above) during the connection phase. When you click upload, **hold BOOT** until you see the upload progress start, then release it. If you don't, the upload will fail with a connection error.
+
+**Why?** The ESP32 has two modes: *normal* (run your program) and *download* (accept new firmware over USB). On boards with auto-reset circuitry, the USB chip pulls the right pins (GPIO 0 low + reset) automatically. Our DevKit boards lack this circuit, so you must manually hold BOOT (which pulls GPIO 0 low) to tell the chip: "enter download mode on the next reset." Once the upload tool connects and flashing begins, you can release the button.
 :::
 
 Click the **right arrow** (→) in the bottom toolbar to upload.
