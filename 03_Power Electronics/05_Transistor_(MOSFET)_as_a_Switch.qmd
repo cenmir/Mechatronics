@@ -1,0 +1,8 @@
+---
+title: " Transistor (MOSFET) as a Switch"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=o4_NeqlJgOs"
+  published: true
+  new_tab: false
+---

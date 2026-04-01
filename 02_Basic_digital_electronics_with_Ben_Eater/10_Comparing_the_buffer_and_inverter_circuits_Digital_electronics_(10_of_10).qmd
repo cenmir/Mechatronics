@@ -1,0 +1,8 @@
+---
+title: "Comparing the buffer and inverter circuits | Digital electronics (10 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=Lv9Gc3Lghjk"
+  published: true
+  new_tab: false
+---

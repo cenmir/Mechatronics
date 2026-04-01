@@ -1,0 +1,8 @@
+---
+title: "How a transistor amplifies current | Digital electronics (6 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=uo2KgRN04XI"
+  published: true
+  new_tab: false
+---

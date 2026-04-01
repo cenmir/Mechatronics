@@ -1,0 +1,8 @@
+---
+title: "How a MOSFET works"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=AwRJsze_9m4"
+  published: true
+  new_tab: false
+---

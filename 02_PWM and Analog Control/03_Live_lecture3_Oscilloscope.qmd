@@ -1,0 +1,9 @@
+---
+title: "Live Lecture 3 - Mechatronics - Oscilloscope"
+canvas:
+  type: external_url
+  url: https://www.youtube.com/live/Tsw4Dzqbe3o
+  new_tab: true
+  published: true
+  indent: 0
+---

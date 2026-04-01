@@ -1,0 +1,9 @@
+---
+title: "Live Lecture 1 - Mechatronics - Ohms Law"
+canvas:
+  type: external_url
+  url: https://youtu.be/XQso_aQwi3Q
+  new_tab: true
+  published: true
+  indent: 0
+---

@@ -61,13 +61,17 @@ The 775 motor draws high starting current (>10A). Make sure connections are secu
 const int rpwmPin = 25;
 const int lpwmPin = 26;
 const int potPin = 34;
+const int rpwmChannel = 0;
+const int lpwmChannel = 1;
 const int pwmFreq = 20000;
 const int pwmResolution = 8;
 
 void setup() {
   Serial.begin(115200);
-  ledcAttach(rpwmPin, pwmFreq, pwmResolution);
-  ledcAttach(lpwmPin, pwmFreq, pwmResolution);
+  ledcSetup(rpwmChannel, pwmFreq, pwmResolution);
+  ledcSetup(lpwmChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(rpwmPin, rpwmChannel);
+  ledcAttachPin(lpwmPin, lpwmChannel);
 }
 
 void loop() {
@@ -75,15 +79,15 @@ void loop() {
 
   if (potValue > 2148) {
     int speed = map(potValue, 2148, 4095, 0, 255);
-    ledcWrite(rpwmPin, speed);
-    ledcWrite(lpwmPin, 0);
+    ledcWrite(rpwmChannel, speed);
+    ledcWrite(lpwmChannel, 0);
   } else if (potValue < 1948) {
     int speed = map(potValue, 1948, 0, 0, 255);
-    ledcWrite(rpwmPin, 0);
-    ledcWrite(lpwmPin, speed);
+    ledcWrite(rpwmChannel, 0);
+    ledcWrite(lpwmChannel, speed);
   } else {
-    ledcWrite(rpwmPin, 0);
-    ledcWrite(lpwmPin, 0);
+    ledcWrite(rpwmChannel, 0);
+    ledcWrite(lpwmChannel, 0);
   }
   delay(20);
 }

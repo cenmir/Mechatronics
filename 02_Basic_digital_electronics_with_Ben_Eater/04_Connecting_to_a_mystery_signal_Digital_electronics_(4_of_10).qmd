@@ -1,0 +1,8 @@
+---
+title: "Connecting to a mystery signal | Digital electronics (4 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=KEOsmWRoT00"
+  published: true
+  new_tab: false
+---

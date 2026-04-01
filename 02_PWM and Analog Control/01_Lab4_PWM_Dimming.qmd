@@ -45,7 +45,13 @@ Unlike Arduino boards where only pins marked with `~` support PWM, the ESP32 can
 - **GPIO 6–11** — connected to the internal flash memory, not usable
 - **GPIO 0, 2, 15** — strapping pins that affect boot behavior (GPIO 2 is fine after boot, which is why the example code uses it)
 
-The LEDC peripheral lets you configure both **frequency** and **resolution** per channel. In this lab you will use `ledcAttach(pin, freq, resolution)` to set up a channel and `ledcWrite(pin, duty)` to control the duty cycle.
+The LEDC peripheral lets you configure both **frequency** and **resolution** per channel. In this lab you will use three functions:
+
+1. `ledcSetup(channel, freq, resolution)` — configure a PWM channel
+2. `ledcAttachPin(pin, channel)` — attach a GPIO pin to that channel
+3. `ledcWrite(channel, duty)` — set the duty cycle on the channel
+
+Note that you address the **channel** (0–15), not the pin, when writing the duty cycle.
 
 ### Resolution
 
@@ -73,7 +79,7 @@ The higher the resolution, the more clock ticks per cycle, leaving fewer cycles 
 | 10-bit (1024 steps) | 78.1 kHz | Motor PWM |
 | 16-bit (65536 steps) | 1220 Hz | Servo control at 50 Hz |
 
-For example, servo control needs 50 Hz and fine angle control, so 16-bit works well ($50 \times 65536 = 3.3\text{M}$, well under 80M). But 16-bit at 5 kHz would require $5000 \times 65536 = 327\text{M}$ clock ticks per second -- impossible with an 80 MHz clock. If you try, `ledcAttach` will silently reduce the resolution to fit.
+For example, servo control needs 50 Hz and fine angle control, so 16-bit works well ($50 \times 65536 = 3.3\text{M}$, well under 80M). But 16-bit at 5 kHz would require $5000 \times 65536 = 327\text{M}$ clock ticks per second -- impossible with an 80 MHz clock. If you try, `ledcSetup` will silently reduce the resolution to fit.
 
 In this lab you will experiment with this: Task 6 asks you to set 50 Hz with 16-bit resolution (servo settings), while the earlier tasks use 5 kHz with 8-bit (LED dimming). Both combinations stay well within the 80 MHz limit.
 
@@ -81,7 +87,7 @@ Note that this constraint applies **per channel**, not as a total across all cha
 
 ### Hardware Peripheral vs. Software
 
-This is possible because the LEDC is a **hardware peripheral** -- dedicated circuitry on the chip that generates PWM signals independently of the CPU. Once you call `ledcAttach` and `ledcWrite`, the hardware takes over. The CPU does not spend any time toggling pins; it is free to do other work.
+This is possible because the LEDC is a **hardware peripheral** -- dedicated circuitry on the chip that generates PWM signals independently of the CPU. Once you call `ledcSetup` and `ledcWrite`, the hardware takes over. The CPU does not spend any time toggling pins; it is free to do other work.
 
 The alternative would be *bit-banging*: toggling a pin HIGH and LOW in a loop with precise timing, like this:
 
@@ -96,6 +102,20 @@ while (true) {
 ```
 
 This ties up the CPU completely -- it can't do anything else while generating the signal, and any interrupt (like serial communication) would cause timing jitter. With a hardware peripheral, you get rock-steady PWM on up to 16 channels simultaneously while the CPU runs your program logic. The ESP32 is actually a dual-core processor (two Xtensa LX6 cores), but even a single core can handle complex tasks while the LEDC peripheral runs all PWM channels in the background.
+
+::: {.callout-warning}
+## PlatformIO uses Arduino Core v2.x
+
+PlatformIO's `espressif32` platform currently ships with **Arduino Core v2.x**. If you search online you may find examples using the newer v3.x API (`ledcAttach(pin, freq, res)`), but that will not compile. The v2.x API used in this lab requires a separate setup and attach step:
+
+| v2.x (PlatformIO default) | v3.x (newer) |
+|--------------------|-------------------------------|
+| `ledcSetup(channel, freq, res)` | `ledcAttach(pin, freq, res)` |
+| `ledcAttachPin(pin, channel)` | *(included above)* |
+| `ledcWrite(channel, duty)` | `ledcWrite(pin, duty)` |
+
+If you get a compilation error about `ledcAttach` not being declared, you are mixing up the two APIs.
+:::
 
 ## Components
 
@@ -112,21 +132,25 @@ Oscilloscopes are in short supply — we are borrowing them from the Electronics
 1. Upload the following code and observe the LED smoothly fading:
 
 ```cpp
+#include <Arduino.h>
+
 const int ledPin = 2;
+const int pwmChannel = 0;
 const int pwmFreq = 5000;     // 5 kHz
 const int pwmResolution = 8;  // 8-bit: 0–255
 
 void setup() {
-  ledcAttach(ledPin, pwmFreq, pwmResolution);
+  ledcSetup(pwmChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(ledPin, pwmChannel);
 }
 
 void loop() {
   for (int duty = 0; duty <= 255; duty++) {
-    ledcWrite(ledPin, duty);
+    ledcWrite(pwmChannel, duty);
     delay(10);
   }
   for (int duty = 255; duty >= 0; duty--) {
-    ledcWrite(ledPin, duty);
+    ledcWrite(pwmChannel, duty);
     delay(10);
   }
 }
@@ -152,13 +176,17 @@ We use the Arduino `String` class here for simplicity. In the Arduino community 
 7. Upload the following code. Use the serial monitor to type a duty cycle value (0–255) and press Enter. The LED brightness should change immediately.
 
 ```cpp
+#include <Arduino.h>
+
 const int ledPin = 2;
+const int pwmChannel = 0;
 int pwmFreq = 5000;
 const int pwmResolution = 8;
 
 void setup() {
   Serial.begin(115200);
-  ledcAttach(ledPin, pwmFreq, pwmResolution);
+  ledcSetup(pwmChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(ledPin, pwmChannel);
   Serial.println("Enter 'duty <value>' (0-255) or 'freq <value>' (Hz)");
 }
 
@@ -170,12 +198,12 @@ void loop() {
     if (input.startsWith("duty ")) {
       int duty = input.substring(5).toInt();
       duty = constrain(duty, 0, 255);
-      ledcWrite(ledPin, duty);
+      ledcWrite(pwmChannel, duty);
       Serial.print("Duty set to ");
       Serial.println(duty);
     } else if (input.startsWith("freq ")) {
       pwmFreq = input.substring(5).toInt();
-      ledcAttach(ledPin, pwmFreq, pwmResolution);
+      ledcSetup(pwmChannel, pwmFreq, pwmResolution);
       Serial.print("Frequency set to ");
       Serial.print(pwmFreq);
       Serial.println(" Hz");

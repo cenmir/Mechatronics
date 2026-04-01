@@ -1,0 +1,8 @@
+---
+title: "Inverting the signal with a transistor | Digital electronics (9 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=hYN8C769k8A"
+  published: true
+  new_tab: false
+---

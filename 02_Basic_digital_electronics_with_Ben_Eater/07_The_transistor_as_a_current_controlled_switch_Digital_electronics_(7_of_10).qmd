@@ -1,0 +1,8 @@
+---
+title: "The transistor as a current controlled switch | Digital electronics (7 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=WD14ow-1q6k"
+  published: true
+  new_tab: false
+---

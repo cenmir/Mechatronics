@@ -1,0 +1,8 @@
+---
+title: "Limiting current through an LED | Digital electronics (2 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=CdqvY_vY1XA"
+  published: true
+  new_tab: false
+---

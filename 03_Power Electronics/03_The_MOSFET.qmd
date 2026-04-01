@@ -1,0 +1,8 @@
+---
+title: "The MOSFET"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=lyfx8CL7AkI"
+  published: true
+  new_tab: false
+---

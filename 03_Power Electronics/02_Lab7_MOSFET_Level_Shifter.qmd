@@ -25,6 +25,10 @@ A **P-channel MOSFET** turns ON when $V_{GS}$ is **negative** — i.e., the gate
 
 Problem: the ESP32 outputs 0–3.3V, but the P-channel gate needs to swing between GND and 12V. Solution: use a **2N7000** (small N-channel MOSFET) as a level shifter.
 
+### Datasheet
+
+- **IRF9540** (P-channel): [IRF9540 datasheet (PDF)](https://docs.rs-online.com/bace/0900766b80791196.pdf)
+
 **How it works:**
 
 - ESP32 GPIO = HIGH (3.3V) → 2N7000 turns ON → pulls IRF9540 gate to GND → IRF9540 turns ON → load is powered
@@ -51,10 +55,36 @@ This is exactly the circuit used in the H-bridge (Lab 8–9) for the high-side s
 3. **Measure** the IRF9540 gate voltage when the LED is ON and when OFF.
 4. Apply PWM to dim the LED. Does it work?
 
+## Datasheet Exercises
+
+Open the IRF9540 datasheet and answer the following.
+
+### Pinout
+
+1. Find the pinout diagram. Identify the **Gate (G)**, **Drain (D)**, and **Source (S)** pins. Note that the pin order may differ from the N-channel MOSFETs in Lab 6 — check carefully!
+
+### $I_D$ vs $V_{GS}$ — Transfer Characteristics
+
+2. Find the graph showing **$I_D$ vs $V_{GS}$** at $T_J = 25°C$. Remember that for a P-channel MOSFET, $V_{GS}$ is **negative**:
+   - What drain current can the IRF9540 conduct at $V_{GS} = -12V$ (gate fully pulled to GND, source at 12V)?
+   - Why don't we need to worry about 3.3V drive here — what does the level shifter circuit ensure about the gate voltage?
+
+### $V_{GS(th)}$ — Gate Threshold Voltage
+
+3. Find $V_{GS(th)}$ in the electrical characteristics table:
+   - What are the minimum and maximum values? (Note: they will be negative.)
+   - The MOSFET starts to conduct when $|V_{GS}| > |V_{GS(th)}|$. In our circuit, the level shifter pulls the gate to GND, giving $V_{GS} = 0 - 12 = -12V$. Is this well above the threshold?
+
+### $R_{DS(on)}$ — On-State Resistance
+
+4. Find $R_{DS(on)}$:
+   - What is the typical and maximum $R_{DS(on)}$? At what $V_{GS}$ is it specified?
+   - Compare this to the IRL540N from Lab 6. P-channel MOSFETs generally have higher $R_{DS(on)}$ than comparable N-channel MOSFETs — can you confirm this from the datasheets?
+
 ## Questions
 
 1. Draw the complete circuit including both MOSFETs, both resistors, the LED, and the ESP32 GPIO. Label all voltages.
-2. What happens if you connect the ESP32 GPIO directly to the IRF9540 gate (without the 2N7000)? Why doesn't it work?
+2. What happens if you connect the ESP32 GPIO directly to the IRF9540 gate (without the 2N7000)? Why doesn't it work? Use $V_{GS(th)}$ from the datasheet to explain.
 3. An H-bridge uses P-channel (high-side) and N-channel (low-side) MOSFETs. Can you see how this lab connects to the next one?
 
 ## Submission

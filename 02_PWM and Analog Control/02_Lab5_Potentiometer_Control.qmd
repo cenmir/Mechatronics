@@ -13,7 +13,7 @@ canvas:
 title: Lab 5 – PWM Controlled by Potentiometer
 ---
 
-## Learning Goals
+## Learning Goals 
 
 - Read an analog sensor using the ESP32's ADC (Analog-to-Digital Converter)
 - Create your first sensor → actuator control loop
@@ -92,23 +92,31 @@ What you just tested is a **voltage divider** -- the potentiometer splits the su
 
 <iframe src="https://wokwi.com/projects/459819980118969345?embed=1" width="100%" height="500" style="border: 1px solid #ccc; border-radius: 8px;"></iframe>
 
+::: {.callout-warning}
+The Wokwi simulation above uses the **v3.x API** (`ledcAttach`). Our PlatformIO setup uses the **v2.x API** — see the note in [Lab 4](01_Lab4_PWM_Dimming.qmd) for details. Use the code below (v2.x) for your ESP32, not the code in the Wokwi diagram.
+:::
+
 7. Upload the code below. Open the Serial Monitor and turn the potentiometer.
 
 ```cpp
+#include <Arduino.h>
+
 const int potPin = 34;
 const int ledPin = 4;
+const int pwmChannel = 0;
 const int pwmFreq = 5000;
 const int pwmResolution = 8;
 
 void setup() {
   Serial.begin(115200);
-  ledcAttach(ledPin, pwmFreq, pwmResolution);
+  ledcSetup(pwmChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(ledPin, pwmChannel);
 }
 
 void loop() {
   int potValue = analogRead(potPin);           // 0-4095
   int pwmValue = map(potValue, 0, 4095, 0, 255); // scale to 8-bit
-  ledcWrite(ledPin, pwmValue);
+  ledcWrite(pwmChannel, pwmValue);
 
   Serial.print("Pot: ");
   Serial.print(potValue);
@@ -118,6 +126,22 @@ void loop() {
   delay(50);
 }
 ```
+
+Remember to set these settings in you `platformio.ini`:
+```ini
+; Serial monitor baud rate — MUST match Serial.begin() in your code
+monitor_speed = 115200
+
+; Upload speed — faster upload to the board
+upload_speed = 921600
+
+; Serial monitor: echo what you type so you can see your own commands
+monitor_echo = true
+
+; Serial monitor: send data when you press Enter (not character by character)
+monitor_filters = send_on_enter
+```
+
 
 8. Verify that the LED brightness follows the potentiometer position smoothly.
 9. Compare the ADC readings to your multimeter measurements from Part B. Does the ADC value match what you expect (`value / 4095 * 3.3V`)?

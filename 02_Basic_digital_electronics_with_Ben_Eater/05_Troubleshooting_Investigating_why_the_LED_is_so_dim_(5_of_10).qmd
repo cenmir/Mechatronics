@@ -1,0 +1,8 @@
+---
+title: "Troubleshooting: Investigating why the LED is so dim (5 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=BpJAh0KfgEI"
+  published: true
+  new_tab: false
+---

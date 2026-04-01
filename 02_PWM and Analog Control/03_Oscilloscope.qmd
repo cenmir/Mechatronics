@@ -1,0 +1,9 @@
+---
+title: "How to use the oscilloscope"
+canvas:
+  type: external_url
+  url: https://youtu.be/LaY47Qrfs0c
+  new_tab: true
+  published: true
+  indent: 0
+---

@@ -1,0 +1,9 @@
+---
+title: "Live Lecture 2 - Mechatronics - ESP32"
+canvas:
+  type: external_url
+  url: https://www.youtube.com/live/FEPxrPVAy3o
+  new_tab: true
+  published: true
+  indent: 0
+---

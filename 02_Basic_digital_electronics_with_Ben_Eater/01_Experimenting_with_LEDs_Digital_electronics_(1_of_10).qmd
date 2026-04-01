@@ -1,0 +1,8 @@
+---
+title: "Experimenting with LEDs | Digital electronics (1 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=poWJTSV4Yio"
+  published: true
+  new_tab: false
+---

@@ -1,0 +1,8 @@
+---
+title: "Powering our LED circuit | Digital electronics (3 of 10)"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=LakgUi2Ajkw"
+  published: true
+  new_tab: false
+---

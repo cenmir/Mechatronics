@@ -1,0 +1,220 @@
+---
+canvas:
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - mp4
+  - mov
+  grading_type: pass_fail
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: false
+  submission_types:
+  - online_upload
+  type: assignment
+title: 'Lab – CircuitPython Remote: Joystick over ESP-NOW'
+---
+
+## Learning Goals
+
+- Install and use CircuitPython on the XIAO ESP32
+- Read joystick (potentiometer) inputs using CircuitPython's `analogio`
+- Send joystick data wirelessly using ESP-NOW
+- Understand the differences between Arduino C++ and CircuitPython workflows
+
+## Background
+
+**CircuitPython** is a beginner-friendly Python variant for microcontrollers. Instead of compiling and uploading, you simply save a `code.py` file to a USB drive that appears when you plug in the board. The code runs immediately.
+
+**Why CircuitPython?** It is easier to read and modify than C++, has a fast edit-run cycle (no compilation), and is excellent for prototyping. The trade-off is slightly lower performance — but for a remote controller sending data at 50 Hz, that is more than sufficient.
+
+**ESP-NOW** works the same way as in Lab 14 — fast, connectionless, peer-to-peer wireless using MAC addresses. CircuitPython provides the `espnow` module to access it.
+
+## Components
+
+- 1x XIAO ESP32-S3 (or ESP32-C3)
+- 1--2x Joystick modules
+- 1x USB-C cable
+- 1x ESP32 DevKit (receiver — uses Arduino code from Lab 14)
+
+## Part 1 — Install CircuitPython on the XIAO
+
+1. Go to [circuitpython.org/downloads](https://circuitpython.org/downloads) and search for your exact board (e.g. "XIAO ESP32S3").
+2. Download the latest `.bin` or `.uf2` firmware file.
+3. Put the XIAO into bootloader mode:
+   - Hold the **BOOT** button, press and release **RESET**, then release **BOOT**.
+   - A USB drive named `BOOT` or similar should appear.
+4. Copy the firmware file to the drive (or use `esptool` if your board requires it — follow the instructions on the download page).
+5. After flashing, a new USB drive called **CIRCUITPY** should appear. This is where your code lives.
+
+::: {.callout-tip}
+**Serial console:** Open a serial terminal (e.g. PuTTY, `screen`, or Mu Editor) at 115200 baud to see `print()` output and error messages. In Mu Editor, the serial console is built in.
+:::
+
+## Part 2 — Read Joystick Values
+
+Create a file called `code.py` on the **CIRCUITPY** drive:
+
+```python
+import time
+import board
+import analogio
+
+# Joystick 1
+joy_x = analogio.AnalogIn(board.A0)
+joy_y = analogio.AnalogIn(board.A1)
+
+# Joystick 2 (if using two joysticks)
+# joy_x2 = analogio.AnalogIn(board.A2)
+# joy_y2 = analogio.AnalogIn(board.A3)
+
+while True:
+    x = joy_x.value   # 0 to 65535
+    y = joy_y.value
+
+    print(f"X: {x:5d}  Y: {y:5d}")
+    time.sleep(0.05)
+```
+
+::: {.callout-note}
+CircuitPython always returns 16-bit values (0--65535) from `AnalogIn`, regardless of the hardware ADC resolution. This is different from Arduino's `analogRead()` which returns 0--4095 on ESP32.
+:::
+
+**Tasks:**
+
+1. Save the file and check the serial console — you should see live joystick values.
+2. Move the joystick and note the center, minimum, and maximum values for each axis.
+3. If using two joysticks, uncomment the second joystick lines and read all four axes.
+
+## Part 3 — Send Joystick Data over ESP-NOW
+
+Now we add wireless transmission. Replace `code.py` with:
+
+```python
+import time
+import struct
+import board
+import analogio
+import wifi
+import espnow
+
+# --- Joystick setup ---
+joy_x = analogio.AnalogIn(board.A0)
+joy_y = analogio.AnalogIn(board.A1)
+
+# Print our MAC address (useful for the receiver)
+print("Sender MAC:", ":".join(f"{b:02X}" for b in wifi.radio.mac_address))
+
+# --- ESP-NOW setup ---
+e = espnow.ESPNow()
+
+# Replace with your ESP32 DevKit's MAC address!
+peer = espnow.Peer(mac=b'\xAA\xBB\xCC\xDD\xEE\xFF')
+e.peers.append(peer)
+
+def map_range(value, in_min, in_max, out_min, out_max):
+    """Map a value from one range to another (like Arduino's map())."""
+    return (value - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+while True:
+    # Map 16-bit joystick values to -255..255 range
+    steering = map_range(joy_x.value, 0, 65535, -255, 255)
+    throttle = map_range(joy_y.value, 0, 65535, -255, 255)
+
+    # Pack as two signed 16-bit integers + one byte (button placeholder)
+    data = struct.pack("<hhb", steering, throttle, 0)
+    e.send(data)
+
+    print(f"Sent: steer={steering:4d}  throttle={throttle:4d}")
+    time.sleep(0.02)  # 50 Hz
+```
+
+::: {.callout-important}
+**MAC address:** You must replace `b'\xAA\xBB\xCC\xDD\xEE\xFF'` with the actual MAC address of your receiver ESP32. If the receiver MAC is `24:6F:28:AB:CD:EF`, write it as `b'\x24\x6F\x28\xAB\xCD\xEF'`.
+:::
+
+### Data format
+
+The `struct.pack("<hhb", steering, throttle, button)` creates a 5-byte packet:
+
+| Byte(s) | Format | Field      | Range        |
+|---------|--------|------------|--------------|
+| 0--1    | `h`    | steering   | -255 to 255  |
+| 2--3    | `h`    | throttle   | -255 to 255  |
+| 4       | `b`    | button     | 0 or 1       |
+
+This matches the `ControlData` struct from Lab 14, so the **same Arduino receiver code works without changes**.
+
+## Part 4 — Verify with the Receiver
+
+1. Upload the **receiver code from Lab 14** to the ESP32 DevKit (Arduino).
+2. Save the ESP-NOW sender code to the XIAO (CircuitPython).
+3. Open serial monitors on both boards.
+4. Move the joystick — values should appear on both sender and receiver.
+
+::: {.callout-tip}
+**Debugging:** If the receiver shows nothing, double-check:
+
+- The MAC address in the sender matches the receiver exactly.
+- Both boards are powered on.
+- The receiver code uses the correct `struct` layout (two `int16_t` + one `int8_t`).
+:::
+
+## Part 5 — Add a Second Joystick (Optional)
+
+For full car control (steering + throttle + camera pan/tilt), expand to four axes:
+
+```python
+import time
+import struct
+import board
+import analogio
+import wifi
+import espnow
+
+joy_x1 = analogio.AnalogIn(board.A0)
+joy_y1 = analogio.AnalogIn(board.A1)
+joy_x2 = analogio.AnalogIn(board.A2)
+joy_y2 = analogio.AnalogIn(board.A3)
+
+e = espnow.ESPNow()
+peer = espnow.Peer(mac=b'\xAA\xBB\xCC\xDD\xEE\xFF')  # receiver MAC
+e.peers.append(peer)
+
+def map_range(value, in_min, in_max, out_min, out_max):
+    return (value - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+while True:
+    steer    = map_range(joy_x1.value, 0, 65535, -255, 255)
+    throttle = map_range(joy_y1.value, 0, 65535, -255, 255)
+    pan      = map_range(joy_x2.value, 0, 65535, -255, 255)
+    tilt     = map_range(joy_y2.value, 0, 65535, -255, 255)
+
+    data = struct.pack("<hhhh", steer, throttle, pan, tilt)
+    e.send(data)
+    time.sleep(0.02)
+```
+
+::: {.callout-note}
+If you send 4 axes, you will also need to update the receiver code to unpack four values instead of two + button.
+:::
+
+## CircuitPython vs Arduino — Quick Comparison
+
+| Aspect             | Arduino (C++)                  | CircuitPython                    |
+|--------------------|--------------------------------|----------------------------------|
+| Edit cycle         | Edit → Compile → Upload        | Save file → runs immediately     |
+| ADC range          | 0--4095 (12-bit)               | 0--65535 (always 16-bit)         |
+| ESP-NOW setup      | `esp_now_init()`, callbacks    | `espnow.ESPNow()`, simple API   |
+| Performance        | Faster, lower latency          | Slightly slower, plenty for 50Hz |
+| Libraries          | Huge ecosystem                 | Growing, covers most sensors     |
+
+## Submission
+
+Upload a **photo or video** showing:
+
+- The CIRCUITPY drive with your `code.py`
+- The serial output on both sender and receiver showing live joystick values
