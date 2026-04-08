@@ -13,3 +13,5 @@ privateCanvasToken
 tmp-*
 _temp_*
 .vscode/
+.canvas_diff_temp/*
+.claude/*

@@ -23,6 +23,8 @@ An H-bridge lets us drive a simple brushed DC motor in both directions from a si
 
 ## Our Circuit
 
+![H-Bridge Schematic](../graphics/H-Bridge_Circuit.png)
+
 We build our bridge from two **IRF9540** P-channel MOSFETs on the high side and two **IRL540N** N-channel MOSFETs on the low side. The IRL540N is a logic-level MOSFET: its gate threshold voltage is around 2V, so the 3.3V output of an ESP32 turns it on directly.
 
 The P-channel IRF9540 needs its gate pulled to ground to turn on, but its source sits at the supply voltage $V_+$. A 3.3V microcontroller cannot bridge that gap on its own, so we insert a **2N7000** as a level shifter on each high-side gate. When the ESP32 drives the 2N7000 on, it pulls the IRF9540 gate low; a 10kΩ pull-up resistor to $V_+$ holds the IRF9540 off when the level shifter is not conducting.
@@ -56,4 +58,6 @@ For PWM speed control, apply the PWM signal to one of the low-side gate pins whi
 
 Use the interactive simulation below to toggle the switches and observe the current flow in real time:
 
-[Open Falstad Circuit Simulation](https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l3BWEBmAHAJmgdgGzoRmACzICcpkORI6pISCk9ApgLRhgBQYW6I7OcIIH8iqKCCzg+YPk3nQkANS4BzfmEEc+IzfKiciYJO1kgqIVEwsKkEGMajRHMSHNh2DAZw1nNvvhtwEAAzAEMAGy9mTgB3DS1hbSEDeN1BKxTITh9M-0ygiHComJ9TQOpy8DMmIsjonMtrajya4OKGtOTk3Rq4hOq+VrlOIA)
+
+<iframe src="https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l3BWEBmAHAJmgdgGzoRmACzICcpkORI6pISCk9ApgLRhgBQYW6I7OcIIH8iqKCCzg+YPk3nQkANS4BzfmEEc+IzfKiciYJO1kgqIVEwsKkEGMajRHMSHNh2DAZw1nNvvhtwEAAzAEMAGy9mTgB3DS1hbSEDeN1BKxTITh9M-0ygiHComJ9TQOpy8DMmIsjonMtrajya4OKGtOTk3Rq4hOq+VrlOIA" width="100%" height="500"></iframe>
+

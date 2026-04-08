@@ -1,0 +1,8 @@
+---
+title: "A better way to add threads to your 3D prints"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=HgEEtk85rAY"
+  published: true
+  new_tab: true
+---

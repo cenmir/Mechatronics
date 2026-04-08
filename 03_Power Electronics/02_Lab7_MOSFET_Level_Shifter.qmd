@@ -21,7 +21,11 @@ title: Lab 7 – P-Channel MOSFET with Level Shifter
 
 ## Background
 
-A **P-channel MOSFET** turns ON when $V_{GS}$ is **negative** — i.e., the gate is pulled **below** the source. For a P-channel MOSFET with its source connected to 12V, we need to pull the gate to GND to turn it on.
+In cases when we need to switch the **high side** (positive supply) of a load, we can use a **P-channel MOSFET**. However, the gate voltage requirements are different from N-channel MOSFETs.
+
+A **P-channel MOSFET** turns ON when $V_{GS}$ is **negative**, i.e., the gate is pulled **below** the source. For a P-channel MOSFET with its source connected to 12V, we need to pull the gate to GND to turn it on.
+
+<iframe width="100%" height="300" src="https://www.falstad.com/circuit/circuitjs.html?ctz=DwYwlgTgBAZgvAIgIwKgFwM6IAwDpsEECsqYIiSeATAVQOx0DM2AHFQGwCcndqIARoiLZUAB0EJhqAG4QhqALaYhAUwC0SFAD4AUFCjAA5lAAeidlQAsUIlRZQL1ouxGwcCAPS79wAEqnzKyhma0coK1d4ZHZUAHco1wUAQxNpCipPbwMAGQBRABEAhDDLAgcgy0sWVATFAHtEABMVGCSAVwAbNDUOlUa+OWQ+Q3coAVGFfnIEPGwULz0DWKKSqvLrKsiKTMXgaDNiipZsdZs7GtHB4REFnxgi5xPGFlCg58sLhEZGGTQKXBIUH4Khw+AytyWKze2Fe1kY7GqbhmOx8+yELmCLxsGJCn1cg0ohBRkIOYRC2KeMLxxOAGAeOKxlk47ExHyRrlE2whRiKTJZ7ygfMFjAy7JpywOLHYcJhUClcIR1O590lZQF8tZn2+v3+gOBoOw4KyeyKGs2culZ0RtSgVwI4tNlsq9jNx0+82NeUKkqdZTNVWpUAUDQQzVanW6vX6YwJw1G42RQamBo9u38Ppl1g1EXdMSg8QmKTSyCNu2MGatFqcLiVxvTiDoCNZUDoNE1SKQeYLCFFMEGNaDRfSDoOjfs6rVL1ruxMKzoT1scsowSIgJtGDAFERaBBJYAalAAAoAdQAslAMHU2hAQCoaXUoCoAHYUTioDCc4psqImH5QT8iFkPiiFAxauBg0w0MSwGgYgf4QQahA8OwzhUCQ3IeHUxpJI0ABWj7bI+m6Js+iB7nUXRJIYd5Bi+iYKAcSCihgfwIORlHUTswAeOAEC6EAA" title="P-channel MOSFET Explanation" frameborder="0" allowfullscreen></iframe>
 
 Problem: the ESP32 outputs 0–3.3V, but the P-channel gate needs to swing between GND and 12V. Solution: use a **2N7000** (small N-channel MOSFET) as a level shifter.
 
@@ -30,6 +34,8 @@ Problem: the ESP32 outputs 0–3.3V, but the P-channel gate needs to swing betwe
 - **IRF9540** (P-channel): [IRF9540 datasheet (PDF)](https://docs.rs-online.com/bace/0900766b80791196.pdf)
 
 **How it works:**
+
+<iframe width="100%" height="300" src="https://www.falstad.com/circuit/circuitjs.html?ctz=DwYwlgTgBAZgvAIgIwKgFwM6IAwDpsEECsqYIiSeATAVQOx0DM2AHFQGwCcndqIARoiLZUAB0EJhqAG4QhqALaYhAUwC0SFAD4AUFCjAA5lAAeidlQAsUIlRZQL1ouxGwcCAPS79wAEqnzKyhma0coK1d4ZHZUAHco1wUAQxNpCipPbwMAGQBRABEAhDDLAgcgy0sWVATFAHtEABMVGCSAVwAbNDUOlUa+OWQ+Q3coAVGFfnIEPGwULz0DWKKSqvLrKsiKTMXgaDNiipZsdZs7GtHB4REFnxgi5xPGFlCg58sLhEZGGTQKXBIUH4Khw+AytyWKze2Fe1kY7GqbhmOx8+yELmCLxsGJCn1cg0ohBRkIOYRC2KeMLxxL8RUs7A2a0sSHYUEqiKiLLiUQysEGLkUKTSX1wPwhwBMRWedGCRBllm4wQFSNcGDAFA+6BBIsYADUoAAFADqAFkoBg6m0ICAVDT7gd6Yz7EQkFQ2VVPoxedI-sgAahgaDsOCskYHq6zs6I49qeLlgcXW7HTZo+cVTS0Qhk+y2QzI9SoATCDdQ-GhKn7MnbBz3OLJaTvpjQixWdKC2qNag0NqAJK+ABinCIpRp9aEVCQbKIjGx8uc7fVyE13cQVAAdnQiXHw0mvSm3e9Y6WHjisYmm0fdklGgArKDalD3xeuFRrxC6updJKGW1QBRv5E-wOV1UAwX0Py-H8dmADxwAgXQgA" title="Level Shifter Explanation" frameborder="0" allowfullscreen></iframe>
 
 - ESP32 GPIO = HIGH (3.3V) → 2N7000 turns ON → pulls IRF9540 gate to GND → IRF9540 turns ON → load is powered
 - ESP32 GPIO = LOW (0V) → 2N7000 turns OFF → 10kΩ pull-up pulls IRF9540 gate to 12V → IRF9540 turns OFF

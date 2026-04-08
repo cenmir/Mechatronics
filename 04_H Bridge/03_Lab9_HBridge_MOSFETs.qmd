@@ -6,7 +6,7 @@ canvas:
   group_assignment: true
   group_set: Project Groups
   points: 1
-  published: false
+  published: true
   submission_types:
   - online_upload
   type: assignment
@@ -16,7 +16,7 @@ title: Lab 9 – H-Bridge with MOSFETs and ESP32
 ## Learning Goals
 
 - Build a complete MOSFET-based H-bridge controlled by the ESP32
-- Combine concepts from Labs 6, 7, and 8 into a bidirectional motor speed controller
+- Combine concepts from Labs 6, 7, and 8 into a bi-directional motor speed controller
 - Understand dead-time and why dedicated motor driver ICs exist
 
 ## Background
@@ -51,6 +51,10 @@ Each low-side MOSFET needs:
 
 1. Build the MOSFET H-bridge on the breadboard. Use four ESP32 GPIO pins (e.g. GPIO 25, 26, 27, 32) — one per MOSFET/level-shifter pair.
 
+::: {.callout-warning}
+Tripple-check your connections! Use the simulator first!
+:::
+
 2. Write code to control direction and speed using a potentiometer:
    - Potentiometer center (~2048) = motor stopped
    - Turned right (>2048) = forward, speed proportional to position
@@ -58,54 +62,77 @@ Each low-side MOSFET needs:
 
 3. **Important:** Implement dead-time (at least 10μs) when switching direction. Turn the active pair OFF, delay, then turn the new pair ON.
 
+
+::: {.callout-warning}
+Study the code below carefully! Do it in your group and explain every function to each other! Do not just copy-paste the code!!
+:::
+
 ```cpp
+#include <Arduino.h>
+
 const int highLeftPin = 25;   // IRF9540 left (via 2N7000)
-const int lowLeftPin = 26;    // IRL540N left
+const int lowLeftPin = 26;    // IRL540N left   — PWM
 const int highRightPin = 27;  // IRF9540 right (via 2N7000)
-const int lowRightPin = 32;   // IRL540N right
+const int lowRightPin = 32;   // IRL540N right  — PWM
 const int potPin = 34;
+
+// LEDC PWM channels (one per low-side MOSFET)
+const int lowLeftChannel  = 0;
+const int lowRightChannel = 1;
+const int pwmFreq = 20000;    // 20 kHz — above audible range
+const int pwmResolution = 8;  // 8-bit: 0–255
+
+const int deadTimeUs = 50;  // Dead-time between direction changes
 
 void allOff() {
   digitalWrite(highLeftPin, LOW);
-  digitalWrite(lowLeftPin, LOW);
   digitalWrite(highRightPin, LOW);
-  digitalWrite(lowRightPin, LOW);
+  ledcWrite(lowLeftChannel, 0);
+  ledcWrite(lowRightChannel, 0);
+  delayMicroseconds(deadTimeUs);  // Guarantee dead-time on every transition
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(highLeftPin, OUTPUT);
-  pinMode(lowLeftPin, OUTPUT);
   pinMode(highRightPin, OUTPUT);
-  pinMode(lowRightPin, OUTPUT);
+
+  // Set up PWM on the two low-side gates
+  ledcSetup(lowLeftChannel, pwmFreq, pwmResolution);
+  ledcSetup(lowRightChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(lowLeftPin, lowLeftChannel);
+  ledcAttachPin(lowRightPin, lowRightChannel);
+
   allOff();
 }
 
 void forward(int speed) {
-  allOff();
-  delayMicroseconds(50);  // Dead-time
-  digitalWrite(highLeftPin, HIGH);   // Left high ON
-  analogWrite(lowRightPin, speed);   // Right low PWM
+  allOff();                               // includes dead-time
+  digitalWrite(highLeftPin, HIGH);        // Left high ON
+  ledcWrite(lowRightChannel, speed);      // Right low PWM
 }
 
 void reverse(int speed) {
-  allOff();
-  delayMicroseconds(50);  // Dead-time
-  digitalWrite(highRightPin, HIGH);  // Right high ON
-  analogWrite(lowLeftPin, speed);    // Left low PWM
+  allOff();                               // includes dead-time
+  digitalWrite(highRightPin, HIGH);       // Right high ON
+  ledcWrite(lowLeftChannel, speed);       // Left low PWM
 }
+
+// Pot center and deadband (symmetric around the resting position)
+const int potCenter   = 2048;
+const int potDeadband = 100;   // ±100 counts → ignore noise/jitter near center
 
 void loop() {
   int pot = analogRead(potPin);
 
-  if (pot > 2148) {
-    int speed = map(pot, 2148, 4095, 0, 255);
+  if (pot > potCenter + potDeadband) {
+    int speed = map(pot, potCenter + potDeadband, 4095, 0, 255);
     forward(speed);
-  } else if (pot < 1948) {
-    int speed = map(pot, 1948, 0, 0, 255);
+  } else if (pot < potCenter - potDeadband) {
+    int speed = map(pot, potCenter - potDeadband, 0, 0, 255);
     reverse(speed);
   } else {
-    allOff();  // Dead zone
+    allOff();  // Inside deadband — motor stopped
   }
   delay(20);
 }

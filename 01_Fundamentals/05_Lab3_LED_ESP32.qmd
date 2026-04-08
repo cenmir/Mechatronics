@@ -135,3 +135,19 @@ void loop() {
 ## Submission
 
 Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include your resistor calculation, measured voltages, the code you used, and answers to the questions. Render to PDF and upload.
+
+<!-- === MDVIEWER COMMENTS ===
+Review comments on this document. Each comment targets a specific text passage
+identified by its section heading path, paragraph number, and exact text match.
+To address a comment: locate the target text in the indicated section and paragraph,
+apply the suggested change, then remove that comment entry from this block.
+Delete this entire block once all comments are resolved.
+
+[comment:44872f7d] section:"(preamble)" paragraph:1 target:"Measure the voltage on the" context:"{t}tensions:
+  - pdf
+  grading_type: pass_fail
+  group_assignment: true
+  group"
+  hshdas
+  (2026-04-07)
+=== END MDVIEWER COMMENTS === -->

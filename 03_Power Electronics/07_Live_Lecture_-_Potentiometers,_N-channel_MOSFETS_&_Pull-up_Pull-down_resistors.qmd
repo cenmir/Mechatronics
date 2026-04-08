@@ -1,0 +1,8 @@
+---
+title: "Live Lecture - Potentiometers, N-channel MOSFETS & Pull-up/ Pull-down resistors"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/live/5KQHUfo3GIM"
+  published: true
+  new_tab: false
+---
