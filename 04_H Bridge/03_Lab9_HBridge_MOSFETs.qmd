@@ -23,13 +23,13 @@ title: Lab 9 – H-Bridge with MOSFETs and ESP32
 
 Replace the manual switches from Lab 8 with MOSFETs, using the circuit from the [H-Bridge Theory](01_HBridge_Theory.qmd) page:
 
-- **High-side switches:** IRF9540 (P-channel) with 2N7000 level shifters (as in Lab 7)
+- **High-side switches:** IRF9540/IRF9Z34 (P-channel) with 2N7000 level shifters (as in Lab 7)
 - **Low-side switches:** IRL540N (N-channel, logic-level) driven directly by ESP32 (as in Lab 6)
 
 Each high-side MOSFET needs:
 
 - A 2N7000 level shifter with its gate connected to ESP32 GPIO
-- A 10kΩ pull-up from the IRF9540 gate to $V_+$
+- A 10kΩ pull-up from the IRF9540/IRF9Z34 gate to $V_+$
 
 Each low-side MOSFET needs:
 
@@ -39,7 +39,7 @@ Each low-side MOSFET needs:
 ## Components
 
 - ESP32 DevKit
-- 2× IRF9540 (P-channel MOSFET)
+- 2× IRF9540/IRF9Z34 (P-channel MOSFET)
 - 2× IRL540N (N-channel MOSFET, logic-level)
 - 2× 2N7000 (level shifter)
 - 4× 10kΩ resistors (2 pull-ups for high-side, 2 pull-downs for low-side)
@@ -70,9 +70,9 @@ Study the code below carefully! Do it in your group and explain every function t
 ```cpp
 #include <Arduino.h>
 
-const int highLeftPin = 25;   // IRF9540 left (via 2N7000)
+const int highLeftPin = 25;   // IRF9540/IRF9Z34 left (via 2N7000)
 const int lowLeftPin = 26;    // IRL540N left   — PWM
-const int highRightPin = 27;  // IRF9540 right (via 2N7000)
+const int highRightPin = 27;  // IRF9540/IRF9Z34 right (via 2N7000)
 const int lowRightPin = 32;   // IRL540N right  — PWM
 const int potPin = 34;
 

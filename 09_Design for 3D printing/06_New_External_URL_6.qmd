@@ -1,0 +1,8 @@
+---
+title: "Design for 3D-Printing - Manual by Rahix"
+canvas:
+  type: external_url
+  url: "https://blog.rahix.de/design-for-3d-printing/"
+  published: true
+  new_tab: true
+---

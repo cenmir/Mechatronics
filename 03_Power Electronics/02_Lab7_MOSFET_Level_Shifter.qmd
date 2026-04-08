@@ -6,7 +6,7 @@ canvas:
   group_assignment: true
   group_set: Project Groups
   points: 1
-  published: false
+  published: true
   submission_types:
   - online_upload
   type: assignment
@@ -31,39 +31,50 @@ Problem: the ESP32 outputs 0–3.3V, but the P-channel gate needs to swing betwe
 
 ### Datasheet
 
-- **IRF9540** (P-channel): [IRF9540 datasheet (PDF)](https://docs.rs-online.com/bace/0900766b80791196.pdf)
+We have 10 of these:
+- **IRF9540** (P-channel): [IRF9540 datasheet (PDF)](https://www.vishay.com/docs/91078/91078.pdf)
+
+We have 60 of these:
+- **IRF9Z34** (P-channel): [IRF9Z34NPBF datasheet (PDF)](https://docs.rs-online.com/bace/0900766b80791196.pdf)
+
+We have 60 of these:
+- **2N7000** (N-channel): [2N7000 datasheet (PDF)](https://docs.rs-online.com/aadc/0900766b813842af.pdf)
 
 **How it works:**
 
 <iframe width="100%" height="300" src="https://www.falstad.com/circuit/circuitjs.html?ctz=DwYwlgTgBAZgvAIgIwKgFwM6IAwDpsEECsqYIiSeATAVQOx0DM2AHFQGwCcndqIARoiLZUAB0EJhqAG4QhqALaYhAUwC0SFAD4AUFCjAA5lAAeidlQAsUIlRZQL1ouxGwcCAPS79wAEqnzKyhma0coK1d4ZHZUAHco1wUAQxNpCipPbwMAGQBRABEAhDDLAgcgy0sWVATFAHtEABMVGCSAVwAbNDUOlUa+OWQ+Q3coAVGFfnIEPGwULz0DWKKSqvLrKsiKTMXgaDNiipZsdZs7GtHB4REFnxgi5xPGFlCg58sLhEZGGTQKXBIUH4Khw+AytyWKze2Fe1kY7GqbhmOx8+yELmCLxsGJCn1cg0ohBRkIOYRC2KeMLxxL8RUs7A2a0sSHYUEqiKiLLiUQysEGLkUKTSX1wPwhwBMRWedGCRBllm4wQFSNcGDAFA+6BBIsYADUoAAFADqAFkoBg6m0ICAVDT7gd6Yz7EQkFQ2VVPoxedI-sgAahgaDsOCskYHq6zs6I49qeLlgcXW7HTZo+cVTS0Qhk+y2QzI9SoATCDdQ-GhKn7MnbBz3OLJaTvpjQixWdKC2qNag0NqAJK+ABinCIpRp9aEVCQbKIjGx8uc7fVyE13cQVAAdnQiXHw0mvSm3e9Y6WHjisYmm0fdklGgArKDalD3xeuFRrxC6updJKGW1QBRv5E-wOV1UAwX0Py-H8dmADxwAgXQgA" title="Level Shifter Explanation" frameborder="0" allowfullscreen></iframe>
 
-- ESP32 GPIO = HIGH (3.3V) → 2N7000 turns ON → pulls IRF9540 gate to GND → IRF9540 turns ON → load is powered
-- ESP32 GPIO = LOW (0V) → 2N7000 turns OFF → 10kΩ pull-up pulls IRF9540 gate to 12V → IRF9540 turns OFF
+- ESP32 GPIO = HIGH (3.3V) → 2N7000 turns ON → pulls IRF9540/IRF9Z34 gate to GND → IRF9540/IRF9Z34 turns ON → load is powered
+- ESP32 GPIO = LOW (0V) → 2N7000 turns OFF → 10kΩ pull-up pulls IRF9540/IRF9Z34 gate to 12V → IRF9540/IRF9Z34 turns OFF
 
 This is exactly the circuit used in the H-bridge (Lab 8–9) for the high-side switches.
 
 ## Components
 
 - ESP32 DevKit
-- 1× IRF9540 (P-channel MOSFET)
+- 1× IRF9540/IRF9Z34 (P-channel MOSFET)
 - 1× 2N7000 (N-channel MOSFET, level shifter)
 - 1× LED + resistor for 12V
-- 1× 10kΩ pull-up resistor (IRF9540 gate to 12V)
+- 1× 10kΩ pull-up resistor (IRF9540/IRF9Z34 gate to 12V)
 - 1× 10kΩ pull-down resistor (2N7000 gate to GND)
 - 12V power supply
 
 ## Tasks
 
 1. Build the level-shifter circuit:
-   - **IRF9540:** Source to 12V, Drain to LED+resistor to GND, Gate to 2N7000 drain
-   - **2N7000:** Source to GND, Drain to IRF9540 gate (with 10kΩ pull-up to 12V), Gate to ESP32 GPIO (with 10kΩ pull-down to GND)
+   - **IRF9540/IRF9Z34:** Source to 12V, Drain to LED+resistor to GND, Gate to 2N7000 drain
+   - **2N7000:** Source to GND, Drain to IRF9540/IRF9Z34 gate (with 10kΩ pull-up to 12V), Gate to ESP32 GPIO (with 10kΩ pull-down to GND)
 2. Test with blink code. Verify the 12V LED is controlled from the ESP32.
-3. **Measure** the IRF9540 gate voltage when the LED is ON and when OFF.
+3. **Measure** the IRF9540/IRF9Z34 gate voltage when the LED is ON and when OFF.
 4. Apply PWM to dim the LED. Does it work?
 
 ## Datasheet Exercises
 
-Open the IRF9540 datasheet and answer the following.
+Open the IRF9540/IRF9Z34 datasheet and answer the following:
+
+0. What is the difference between the IRF9540 and the IRF9Z34.
+
+Going on, use the IRF9Z34 to answer the questions below.
 
 ### Pinout
 
@@ -72,7 +83,7 @@ Open the IRF9540 datasheet and answer the following.
 ### $I_D$ vs $V_{GS}$ — Transfer Characteristics
 
 2. Find the graph showing **$I_D$ vs $V_{GS}$** at $T_J = 25°C$. Remember that for a P-channel MOSFET, $V_{GS}$ is **negative**:
-   - What drain current can the IRF9540 conduct at $V_{GS} = -12V$ (gate fully pulled to GND, source at 12V)?
+   - What drain current can the IRF9Z34 conduct at $V_{GS} = -12V$ (gate fully pulled to GND, source at 12V)?
    - Why don't we need to worry about 3.3V drive here — what does the level shifter circuit ensure about the gate voltage?
 
 ### $V_{GS(th)}$ — Gate Threshold Voltage
@@ -90,7 +101,7 @@ Open the IRF9540 datasheet and answer the following.
 ## Questions
 
 1. Draw the complete circuit including both MOSFETs, both resistors, the LED, and the ESP32 GPIO. Label all voltages.
-2. What happens if you connect the ESP32 GPIO directly to the IRF9540 gate (without the 2N7000)? Why doesn't it work? Use $V_{GS(th)}$ from the datasheet to explain.
+2. What happens if you connect the ESP32 GPIO directly to the IRF9Z34 gate (without the 2N7000)? Why doesn't it work? Use $V_{GS(th)}$ from the datasheet to explain.
 3. An H-bridge uses P-channel (high-side) and N-channel (low-side) MOSFETs. Can you see how this lab connects to the next one?
 
 ## Submission

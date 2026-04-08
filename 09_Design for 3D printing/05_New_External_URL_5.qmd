@@ -1,0 +1,8 @@
+---
+title: "How to Design a Print with Perfect Tolerance EVERY Time"
+canvas:
+  type: external_url
+  url: "https://youtu.be/XKrDUnZCmQQ"
+  published: false
+  new_tab: true
+---

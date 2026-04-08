@@ -1,0 +1,8 @@
+---
+title: "8 Essential Design Rules for design for 3D printing"
+canvas:
+  type: external_url
+  url: "https://www.youtube.com/watch?v=1n_R8shlGcs"
+  published: false
+  new_tab: true
+---
