@@ -20,7 +20,6 @@ This module has four labs:
 | **Lab 10** | Servo motor — theory, signal format, calibration |
 | **Lab 11** | Servo library and modular code structure |
 | **Lab 12** | Brushed DC motor with the BTS7960 driver |
-| **Lab 13** | Battery voltage sensing with a voltage divider |
 
 ## Why servo first?
 

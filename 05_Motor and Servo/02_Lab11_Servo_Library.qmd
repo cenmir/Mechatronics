@@ -177,7 +177,7 @@ void servoSetup() {
   steeringServo.writeMicroseconds(SERVO_CENTER_US);
 }
 
-// angle: -90 to +90 degrees (full DS3218-270 range)
+// angle: -90 to +90 degrees
 // Maps to minUs..maxUs automatically
 void setSteering(int angle) {
   angle = constrain(angle, -90, 90);
@@ -210,7 +210,7 @@ void loop() {
 Verify that this behaves identically to Part B.
 
 ::: {.callout-tip}
-**Why `-90` to `+90`?** Thinking in degrees makes the calling code readable and matches the physical servo range. When you later receive a steering command over ESP-NOW or WebSocket, you can send an angle directly — the servo module handles the conversion to pulse width internally. `setSteering(-45)` is far clearer than `ledcWrite(0, usToDuty(833))`.
+**Why `-90` to `+90`?** Thinking in degrees makes the calling code readable. When you later receive a steering command over ESP-NOW or WebSocket, you can send an angle directly — the servo module handles the conversion to pulse width internally. `setSteering(-45)` is far clearer than `ledcWrite(0, usToDuty(833))`. The DS3218-270 is physically capable of more, but ±90° covers the full steering range of the RC car.
 :::
 
 ## Questions

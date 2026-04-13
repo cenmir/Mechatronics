@@ -1,0 +1,222 @@
+---
+canvas:
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - mp4
+  - mov
+  grading_type: pass_fail
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: false
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 17 – Motor Current Sensing with the BTS7960
+---
+
+## Learning Goals
+
+- Use the BTS7960 IS pins to measure motor current without breaking the circuit
+- Understand the current sense ratio and convert a voltage reading to amperes
+- Distinguish between normal current sense mode and fault flag mode
+- Add current monitoring to the modular `motor_control.h` from Lab 12
+
+## Background
+
+This lab extends the BTS7960 circuit from **Lab 12**. Keep the wiring and `motor_control.h` from that lab — you are adding two resistors and expanding the module.
+
+**Reference:** [BTS7960 Datasheet (Infineon, Rev. 1.1)](infineon-bts7960-ds-en.pdf) — section 4.4.4 covers the IS pin in detail.
+
+### The IS pin: current sense and fault flag in one
+
+Each BTS7960 IC has a single pin called **IS** (current sense / status flag). On the IBT-2 module these are exposed as **R_IS** (forward half-bridge) and **L_IS** (reverse half-bridge).
+
+The IS pin has two operating modes, selected automatically by the IC:
+
+| Mode | When | IS output |
+|------|------|-----------|
+| Current sense | Normal operation, high-side switch active | Current proportional to motor current |
+| Error flag | Fault detected (overcurrent, overtemperature, short circuit, overvoltage) | Constant fault current, independent of load |
+
+**Current sense mode** — the IS pin sources a current proportional to the load current flowing through the high-side switch. The proportionality constant is the current sense ratio:
+
+$$k_{IS} = \frac{I_{Load}}{I_{IS}} = 8500 \text{ (nominal)}$$
+
+Connect a resistor R_IS from the IS pin to GND. The resulting voltage is:
+
+$$V_{IS} = I_{IS} \times R_{IS} = \frac{I_{Load}}{8500} \times R_{IS}$$
+
+With R_IS = 1 kΩ:
+
+$$V_{IS} = \frac{I_{Load}}{8.5} \text{ V} \quad \Rightarrow \quad I_{Load} = V_{IS} \times 8.5 \text{ A/V}$$
+
+At 8.5 A motor current → V_IS = 1.0 V. At 17 A → 2.0 V.
+
+::: {.callout-note}
+The IS pin only senses the **high-side switch** current. R_IS is active when the motor runs forward (RPWM); L_IS is active when running in reverse (LPWM). At any moment only one is providing a valid sense reading — whichever direction is active.
+:::
+
+**Error flag mode** — when the IC detects a fault, the IS output switches to a constant current source I_IS(lim), which produces a voltage spike at the IS pin independent of actual motor current. This makes it easy to detect: if V_IS is unexpectedly high for the current speed command, the IC has triggered a protection event.
+
+## Components
+
+- ESP32 DevKit
+- BTS7960 motor driver module (wired as in Lab 12)
+- 775 DC motor
+- 2× 1 kΩ resistor
+- Potentiometer (10 kΩ)
+- 12V power supply
+
+## Part A — Wiring the IS Pins
+
+Add two resistors to the existing Lab 12 circuit:
+
+| BTS7960 pin | Connection |
+|-------------|------------|
+| R_IS | 1 kΩ resistor to GND; junction to GPIO 36 |
+| L_IS | 1 kΩ resistor to GND; junction to GPIO 39 |
+
+GPIO 36 (VP) and GPIO 39 (VN) are input-only ADC pins on the ESP32 — they have no output driver that could interfere with the IS pin.
+
+::: {.callout-warning}
+Do not leave the IS pins floating. Without the pull-down resistor the pin voltage is undefined and the IC may not behave correctly in fault conditions.
+:::
+
+## Part B — Reading Motor Current
+
+Upload the sketch below. It reads both IS pins and converts to estimated motor current.
+
+```cpp
+#include <Arduino.h>
+#include "motor_control.h"
+
+const int rIsPin = 36;
+const int lIsPin = 39;
+const float R_IS      = 1000.0;  // ohms
+const float K_SENSE   = 8500.0;  // current sense ratio
+const float V_REF     = 3.3;
+const int   ADC_MAX   = 4095;
+
+const int throttlePot = 35;
+
+float readCurrentA(int pin) {
+  float voltage = analogRead(pin) / (float)ADC_MAX * V_REF;
+  return voltage * K_SENSE / R_IS;
+}
+
+void setup() {
+  Serial.begin(115200);
+  motorSetup();
+}
+
+void loop() {
+  int throttle = map(analogRead(throttlePot), 0, 4095, -255, 255);
+  setMotorSpeed(throttle);
+
+  float current = (throttle >= 0)
+    ? readCurrentA(rIsPin)
+    : readCurrentA(lIsPin);
+
+  Serial.printf("throttle=%d  current=%.2f A\n", throttle, current);
+  delay(50);
+}
+```
+
+1. Run the motor at several speeds. Note the no-load current at each throttle setting.
+2. Gently resist the motor shaft by hand (briefly). Observe the current increase in the serial monitor.
+3. Compare your readings with the clamp meter from Lab 12. How close are they?
+
+::: {.callout-tip}
+The ESP32 ADC has nonlinearity, especially at low voltages. Readings below ~0.1 V (below ~0.85 A) are unreliable. For the 775 motor at no load this is often close to the noise floor — that is expected.
+:::
+
+## Part C — Stall Detection
+
+Extend the sketch to stop the motor automatically if current exceeds a threshold. This protects both the motor and the driver.
+
+```cpp
+const float STALL_CURRENT_A = 15.0;  // adjust based on your motor
+bool faultLatched = false;
+
+void loop() {
+  if (faultLatched) {
+    setMotorSpeed(0);
+    Serial.println("FAULT: motor stopped. Reset ESP to clear.");
+    delay(500);
+    return;
+  }
+
+  int throttle = map(analogRead(throttlePot), 0, 4095, -255, 255);
+  setMotorSpeed(throttle);
+
+  float current = (throttle >= 0)
+    ? readCurrentA(rIsPin)
+    : readCurrentA(lIsPin);
+
+  if (current > STALL_CURRENT_A) {
+    setMotorSpeed(0);
+    faultLatched = true;
+    Serial.printf("FAULT latched at %.2f A\n", current);
+  }
+
+  Serial.printf("throttle=%d  current=%.2f A\n", throttle, current);
+  delay(50);
+}
+```
+
+Trigger the stall protection by stalling the motor shaft (hold it firmly for ~1 second). Verify the motor stops and the fault message appears.
+
+## Part D — Add to `motor_control.h`
+
+Integrate current sensing into the motor module so `main.cpp` never touches ADC pins directly:
+
+```cpp
+// Add to motor_control.h
+
+const int R_IS_PIN  = 36;
+const int L_IS_PIN  = 39;
+const float IS_R_OHM   = 1000.0;
+const float IS_K_RATIO = 8500.0;
+const float IS_VREF    = 3.3;
+
+void motorSenseSetup() {
+  // ADC pins 36/39 need no pinMode — input-only by hardware
+}
+
+// Returns estimated motor current in amperes (always positive)
+float getMotorCurrentA() {
+  int pin = (/* last direction */ true) ? R_IS_PIN : L_IS_PIN;
+  float v = analogRead(pin) / 4095.0 * IS_VREF;
+  return v * IS_K_RATIO / IS_R_OHM;
+}
+
+// Returns true if IS voltage suggests a fault (> ~2.5 V with 1kΩ)
+bool isMotorFault() {
+  float vR = analogRead(R_IS_PIN) / 4095.0 * IS_VREF;
+  float vL = analogRead(L_IS_PIN) / 4095.0 * IS_VREF;
+  return (vR > 2.5 || vL > 2.5);
+}
+```
+
+::: {.callout-note}
+The `getMotorCurrentA()` function above needs to track which direction is currently active to pick the right IS pin. Extend `setMotorSpeed()` to store the last direction in a module-level variable and use it here.
+:::
+
+## Questions
+
+1. The current sense ratio is specified as 8500 **nominal**. What does this mean for the accuracy of your current measurement? Would you trust it for precise current control, or only for threshold detection?
+2. The IS pin only reflects the **high-side switch** current. Why does it not sense the low-side switch current? (Hint: think about which transistor is conducting in each half of the PWM cycle.)
+3. In Part C, a latch is used — the motor does not restart automatically after a fault. Why is auto-restart potentially dangerous in a motor application?
+4. The datasheet states the IS pin goes to a **constant fault current** during overtemperature or short circuit. How does this make fault detection simpler compared to a system where the fault signal depended on load current?
+
+## Submission
+
+Upload a short video or PDF showing:
+
+- Serial monitor output at two or three motor speeds with current readings
+- The stall detection triggering (motor stops, fault message printed)
+- Answers to the questions

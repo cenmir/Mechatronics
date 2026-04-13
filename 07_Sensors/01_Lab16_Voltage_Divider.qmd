@@ -11,11 +11,11 @@ canvas:
   group_assignment: true
   group_set: Project Groups
   points: 1
-  published: true
+  published: false
   submission_types:
   - online_upload
   type: assignment
-title: Lab 13 – Voltage Divider and Battery Monitor
+title: Lab 16 – Voltage Divider and Battery Monitor
 ---
 
 ## Learning Goals

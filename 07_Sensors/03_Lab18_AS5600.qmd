@@ -15,7 +15,7 @@ canvas:
   submission_types:
   - online_upload
   type: assignment
-title: Lab 16 – AS5600 Magnetic Encoder (I2C)
+title: Lab 18 – AS5600 Magnetic Encoder (I2C)
 ---
 
 ## Learning Goals
