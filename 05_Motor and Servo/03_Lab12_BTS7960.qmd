@@ -1,0 +1,319 @@
+---
+canvas:
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - mp4
+  - mov
+  grading_type: pass_fail
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: false
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 12 – Driving the Motor with BTS7960
+---
+
+## Learning Goals
+
+- Use the BTS7960 motor driver — the same component used in the RC car
+- Control the 775 DC motor with RPWM/LPWM signals
+- Integrate motor control into the modular code structure from Lab 11
+- Understand the difference between your discrete H-bridge (Lab 9) and an integrated driver
+
+## Background
+
+![BTS7960 DC Motor Driver Module](graphics/BTS7960-DC-Motor-Driver.jpg)
+
+The **BTS7960** (also sold as the IBT-2 module) is a complete H-bridge motor driver rated for 43A peak current. It replaces the entire discrete MOSFET H-bridge from Lab 9 with a single module.
+
+![BTS7960 Pinout](graphics/BTS7960-Pinout.jpg)
+
+| Pin | Function |
+|-----|----------|
+| RPWM | PWM input for forward direction |
+| LPWM | PWM input for reverse direction |
+| R_EN / L_EN | Enable pins (tie to VCC) |
+| VCC | Logic power (3.3V or 5V) |
+| B+ / B- | Motor power input (12V battery) |
+| M+ / M- | Motor output |
+
+**Control:** Apply PWM to RPWM (keep LPWM LOW) for forward. Apply PWM to LPWM (keep RPWM LOW) for reverse. Duty cycle controls speed.
+
+### PWM Visualizer
+
+Use the sliders below to see how PWM frequency and duty cycle affect the average voltage delivered to the motor. The red line is the PWM signal; the dashed black line is the average (effective) voltage.
+
+```{=html}
+<div style="display: flex; align-items: center; flex-direction: column;">
+  <div style="display: flex; align-items: center;">
+    <div style="margin-right: 30px;">
+      <p>Average motor voltage: <strong><span id="avg-voltage">6.00V</span></strong> / 12V</p>
+    </div>
+    <canvas id="pwm-canvas" width="400" height="200"></canvas>
+    <div style="margin-left: 30px;">
+      <div id="duty-cycle-circle" style="background-color: rgb(128, 128, 0); width: 50px; height: 50px; border-radius: 50%; margin-top: 10px;"></div>
+      <div style="display: flex; align-items: center; justify-content: center; margin-top: 20px;">Motor</div>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: center; margin-top: 20px;">
+    <p style="margin-right: 10px;">PWM Duty Cycle:</p>
+    <input type="range" min="0" max="100" value="50" step="0.390625" class="slider" id="duty-cycle-slider">
+    <p style="margin-left: 10px;"><strong><span id="duty-cycle-percentage">50.00 %</span></strong></p>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px; margin-left: -27px;">
+    <p style="margin-right: 10px;">PWM Frequency:</p>
+    <input type="range" min="1" max="15" value="3" step="0.1" class="slider" id="frequency-slider">
+    <p style="margin-left: 10px;"><span id="frequency-value">3 Hz</span></p>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px; margin-bottom: 30px;">
+    <p style="margin-right: 10px; margin-top: 20px;">PWM Duty Cycle Resolution:</p>
+    <select id="duty-cycle-resolution">
+      <option value="2">2 bits</option>
+      <option value="3">3 bits</option>
+      <option value="4">4 bits</option>
+      <option value="5">5 bits</option>
+      <option value="6">6 bits</option>
+      <option value="8" selected="">8 bits</option>
+      <option value="10">10 bits</option>
+      <option value="16">16 bits</option>
+    </select>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('pwm-canvas');
+  const context = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  let frequency = 3;
+  let dutyCycle = 0.5;
+
+  function updatePlot() {
+    const plotData = [];
+    let sum = 0;
+    for (let i = 0; i < width; i++) {
+      const value = i % (width / frequency) < (width / frequency) * dutyCycle ? 1 : -1;
+      plotData.push(value);
+      sum += value;
+    }
+
+    context.lineWidth = 1.5;
+    context.setLineDash([]);
+    context.strokeStyle = 'red';
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.beginPath();
+    context.moveTo(0, height / 2);
+    for (let i = 1; i < plotData.length; i++) {
+      context.lineTo(i, height / 2 - plotData[i] * height / 4);
+    }
+    context.stroke();
+
+    // average voltage line
+    context.beginPath();
+    context.setLineDash([5, 5]);
+    context.lineWidth = 2;
+    context.strokeStyle = 'black';
+    context.moveTo(0, height / 2 - sum / plotData.length * height / 4);
+    context.lineTo(width, height / 2 - sum / plotData.length * height / 4);
+    context.stroke();
+
+    // average voltage scaled to 12V motor supply
+    const avgVoltage = dutyCycle * 12;
+    document.getElementById('avg-voltage').textContent = avgVoltage.toFixed(2) + 'V';
+
+    // duty cycle percentage
+    document.getElementById('duty-cycle-percentage').textContent = (dutyCycle * 100).toFixed(2) + ' %';
+
+    // frequency label
+    document.getElementById('frequency-value').textContent = parseFloat(frequency).toFixed(1) + ' Hz';
+
+    // duty cycle circle color
+    const dutyCycleCircle = document.getElementById('duty-cycle-circle');
+    const redValue = Math.round(255 * dutyCycle);
+    dutyCycleCircle.style.backgroundColor = 'rgb(' + redValue + ',' + redValue + ',0)';
+
+    // step size based on resolution
+    const dutyCycleSlider = document.getElementById('duty-cycle-slider');
+    const selectedResolution = document.getElementById('duty-cycle-resolution').value;
+    const steps = Math.pow(2, parseInt(selectedResolution));
+    dutyCycleSlider.step = (100 / steps).toString();
+  }
+
+  updatePlot();
+
+  document.getElementById('frequency-slider').addEventListener('input', function() {
+    frequency = parseFloat(this.value);
+    updatePlot();
+  });
+
+  document.getElementById('duty-cycle-slider').addEventListener('input', function() {
+    dutyCycle = parseFloat(this.value) / 100;
+    updatePlot();
+  });
+
+  document.getElementById('duty-cycle-resolution').addEventListener('change', function() {
+    updatePlot();
+  });
+})();
+</script>
+```
+
+## Components
+
+- ESP32 DevKit
+- 1× BTS7960 motor driver module
+- 1× 775 DC motor
+- 1× Potentiometer (10kΩ)
+- 12V power supply or 3S LiPo battery
+
+::: {.callout-warning}
+The 775 motor draws high starting current (>10A). Make sure connections are secure. Do not stall the motor for extended periods.
+:::
+
+## Part A — Basic Motor Control
+
+1. Wire the BTS7960: B+ to 12V, B- to GND, M+/M- to motor, VCC to 3.3V, R_EN and L_EN to 3.3V.
+2. Connect RPWM to GPIO 25, LPWM to GPIO 26.
+3. Upload the following code and control the motor with the potentiometer:
+
+```cpp
+#include <Arduino.h>
+
+const int rpwmPin     = 25;
+const int lpwmPin     = 26;
+const int potPin      = 34;
+const int rpwmChannel = 0;
+const int lpwmChannel = 1;
+const int pwmFreq     = 20000;  // 20 kHz — above audible range
+const int pwmResolution = 8;
+
+// Center deadband
+const int potCenter   = 2048;
+const int potDeadband = 100;
+
+void setup() {
+  Serial.begin(115200);
+  ledcSetup(rpwmChannel, pwmFreq, pwmResolution);
+  ledcSetup(lpwmChannel, pwmFreq, pwmResolution);
+  ledcAttachPin(rpwmPin, rpwmChannel);
+  ledcAttachPin(lpwmPin, lpwmChannel);
+  ledcWrite(rpwmChannel, 0);
+  ledcWrite(lpwmChannel, 0);
+}
+
+void loop() {
+  int pot = analogRead(potPin);
+
+  if (pot > potCenter + potDeadband) {
+    int speed = map(pot, potCenter + potDeadband, 4095, 0, 255);
+    ledcWrite(rpwmChannel, speed);
+    ledcWrite(lpwmChannel, 0);
+  } else if (pot < potCenter - potDeadband) {
+    int speed = map(pot, potCenter - potDeadband, 0, 0, 255);
+    ledcWrite(rpwmChannel, 0);
+    ledcWrite(lpwmChannel, speed);
+  } else {
+    ledcWrite(rpwmChannel, 0);
+    ledcWrite(lpwmChannel, 0);
+  }
+  delay(20);
+}
+```
+
+4. Test forward and reverse. Verify the dead zone in the middle.
+5. Listen to the motor at different PWM frequencies (1 kHz, 5 kHz, 20 kHz). Which is quietest?
+6. **Measure the motor current** at no load using the clamp meter. Clamp around one motor wire — no need to break the circuit. Note the current at different speeds.
+
+::: {.callout-tip}
+The 775 motor draws several amps — far beyond a standard multimeter's current range. The **clamp meter** is the practical way to measure motor current on assembled systems. You will use this technique throughout the project.
+:::
+
+## Part B — Modular Motor Control
+
+Carry over the modular structure from Lab 11. Add `src/motor_control.h` to your project alongside `servo_control.h`:
+
+```cpp
+#pragma once
+#include <Arduino.h>
+
+const int RPWM_PIN     = 25;
+const int LPWM_PIN     = 26;
+const int RPWM_CHANNEL = 1;
+const int LPWM_CHANNEL = 2;
+const int MOTOR_FREQ   = 20000;
+const int MOTOR_RES    = 8;
+
+void motorSetup() {
+  ledcSetup(RPWM_CHANNEL, MOTOR_FREQ, MOTOR_RES);
+  ledcSetup(LPWM_CHANNEL, MOTOR_FREQ, MOTOR_RES);
+  ledcAttachPin(RPWM_PIN, RPWM_CHANNEL);
+  ledcAttachPin(LPWM_PIN, LPWM_CHANNEL);
+  ledcWrite(RPWM_CHANNEL, 0);
+  ledcWrite(LPWM_CHANNEL, 0);
+}
+
+// speed: -255 (full reverse) to +255 (full forward), 0 = stop
+void setMotorSpeed(int speed) {
+  speed = constrain(speed, -255, 255);
+  if (speed > 0) {
+    ledcWrite(RPWM_CHANNEL, speed);
+    ledcWrite(LPWM_CHANNEL, 0);
+  } else if (speed < 0) {
+    ledcWrite(RPWM_CHANNEL, 0);
+    ledcWrite(LPWM_CHANNEL, -speed);
+  } else {
+    ledcWrite(RPWM_CHANNEL, 0);
+    ledcWrite(LPWM_CHANNEL, 0);
+  }
+}
+```
+
+Update `main.cpp` to control both servo and motor simultaneously with two potentiometers:
+
+```cpp
+#include <Arduino.h>
+#include "servo_control.h"
+#include "motor_control.h"
+
+const int steerPot    = 34;
+const int throttlePot = 35;
+
+void setup() {
+  Serial.begin(115200);
+  servoSetup();
+  motorSetup();
+  Serial.println("Servo + motor ready");
+}
+
+void loop() {
+  int steer    = map(analogRead(steerPot),    0, 4095, -90, 90);
+  int throttle = map(analogRead(throttlePot), 0, 4095, -255, 255);
+
+  setSteering(steer);
+  setMotorSpeed(throttle);
+
+  Serial.printf("steer=%d deg  throttle=%d\n", steer, throttle);
+  delay(20);
+}
+```
+
+::: {.callout-note}
+`main.cpp` never mentions LEDC channels, pin numbers, or pulse widths. Steering and throttle are expressed in natural units (degrees and speed -255..255). This is the structure you will build on for wireless control.
+:::
+
+## Questions
+
+1. How many components does your BTS7960 circuit require compared to the discrete MOSFET H-bridge from Lab 9?
+2. The BTS7960 has built-in shoot-through protection and dead-time generation. Why is this important — and why did you have to implement dead-time manually in Lab 9?
+3. The motor module uses LEDC channels 1 and 2, while the servo (via `ESP32Servo`) uses channel 0. What would happen if both tried to use the same channel?
+4. In `setMotorSpeed()`, why is `constrain()` applied before the `if` statement rather than inside it?
+
+## Submission
+
+Upload a **short video** showing the motor and servo responding to two potentiometers simultaneously. Alternatively, upload a PDF report with your component count comparison and answers to the questions.

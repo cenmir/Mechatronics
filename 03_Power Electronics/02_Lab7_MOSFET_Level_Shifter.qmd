@@ -57,13 +57,30 @@ This is exactly the circuit used in the H-bridge (Lab 8–9) for the high-side s
 - 1× LED + resistor for 12V
 - 1× 10kΩ pull-up resistor (IRF9540/IRF9Z34 gate to 12V)
 - 1× 10kΩ pull-down resistor (2N7000 gate to GND)
+- 1× 100Ω resistor (2N7000 gate series resistor — see note below)
 - 12V power supply
 
 ## Tasks
 
+::: {.callout-warning}
+## Protect the 2N7000 gate — always use the 100Ω series resistor
+
+We have seen 2N7000 transistors "fail" (BLOW UP DRAMATICALLY) `(ㆆࡇㆆ")` permanently open in this circuit `(╯'□')╯︵ ┻━┻`. The cause is gate punch-through: when the 12V rail switches on, the [Miller](https://i.imgflip.com/ap35og.jpg) capacitance between drain and gate ($C_{GD}$) couples a fast voltage spike back into the gate. Without a current-limiting resistor, this transient can exceed the gate's breakdown energy and damage the oxide layer irreversibly — the transistor then conducts regardless of the gate signal.
+
+A **100Ω resistor in series between the ESP32 GPIO and the 2N7000 gate** limits the peak current during these transients and damps any ringing. It has negligible effect on switching speed at the frequencies we use.
+
+```
+ESP32 GPIO ──[100Ω]──┬── 2N7000 Gate
+                     │
+                  [10kΩ]
+                     │
+                    GND
+```
+:::
+
 1. Build the level-shifter circuit:
    - **IRF9540/IRF9Z34:** Source to 12V, Drain to LED+resistor to GND, Gate to 2N7000 drain
-   - **2N7000:** Source to GND, Drain to IRF9540/IRF9Z34 gate (with 10kΩ pull-up to 12V), Gate to ESP32 GPIO (with 10kΩ pull-down to GND)
+   - **2N7000:** Source to GND, Drain to IRF9540/IRF9Z34 gate (with 10kΩ pull-up to 12V), Gate to **100Ω resistor** → ESP32 GPIO (with 10kΩ pull-down to GND)
 2. Test with blink code. Verify the 12V LED is controlled from the ESP32.
 3. **Measure** the IRF9540/IRF9Z34 gate voltage when the LED is ON and when OFF.
 4. Apply PWM to dim the LED. Does it work?

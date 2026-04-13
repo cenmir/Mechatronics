@@ -1,0 +1,231 @@
+---
+canvas:
+  allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - mp4
+  - mov
+  grading_type: pass_fail
+  group_assignment: true
+  group_set: Project Groups
+  points: 1
+  published: true
+  submission_types:
+  - online_upload
+  type: assignment
+title: Lab 11 – Servo Library and Modular Code
+---
+
+## Learning Goals
+
+- Replace raw LEDC servo code with the `ESP32Servo` library
+- Understand what the library does (and does not) do differently
+- Structure servo and motor code into reusable functions and separate files
+- Prepare clean, integration-ready code for the RC car project
+
+## Background
+
+### Why a library?
+
+In Lab 10 you drove the servo by writing directly to the LEDC peripheral. That taught you exactly how the signal is generated. For the RC car project, however, you will combine servo control, motor control, wireless communication, and battery monitoring all in one program. Writing raw LEDC code for every peripheral quickly becomes unmanageable.
+
+A **library** wraps the hardware details behind a clean API:
+
+```cpp
+// Raw LEDC (Lab 10)
+ledcSetup(0, 50, 16);
+ledcAttachPin(13, 0);
+ledcWrite(0, usToDuty(1500));
+
+// ESP32Servo library
+steering.attach(13, 500, 2500);
+steering.writeMicroseconds(1500);
+```
+
+Both produce identical signals. The library version is shorter, more readable, and harder to misconfigure. The trade-off is that it hides the mechanism — which is why you learned the raw version first.
+
+### What `ESP32Servo` does under the hood
+
+`ESP32Servo` uses the same LEDC peripheral as your Lab 10 code. It:
+
+1. Picks a free LEDC channel automatically
+2. Configures it at 50 Hz / the resolution it needs
+3. Does the `usToDuty()` math internally
+4. Provides `write(degrees)` and `writeMicroseconds(us)` as the public API
+
+It does **not** change the signal format, the timing, or the calibration requirements. The `minUs`/`maxUs` values you measured in Lab 10 are still the correct values to pass to `attach()`.
+
+### Modular code structure
+
+A single `loop()` that does everything is impossible to debug and impossible to share across labs. The goal is to split responsibilities:
+
+```
+main.cpp          ← setup(), loop(), coordinates everything
+servo_control.h   ← setSteeringAngle(), servoSetup()
+motor_control.h   ← setMotorSpeed(), motorSetup()
+```
+
+Each file owns one subsystem. `loop()` calls high-level functions and never touches hardware registers directly. When something goes wrong, you know which file to look in.
+
+## Components
+
+- ESP32 DevKit
+- DS3218-270 servo (from Lab 10 — already calibrated)
+- Buck converter set to 5.5–6 V
+- Potentiometer (10 kΩ)
+
+## Part A — Install the Library
+
+Add `ESP32Servo` to your `platformio.ini`:
+
+```ini
+lib_deps =
+    madhephaestus/ESP32Servo@^3.0.0
+```
+
+Save the file — PlatformIO will download the library automatically on the next build.
+
+## Part B — Direct Comparison
+
+Upload both versions and verify they produce **identical behavior**. Use the oscilloscope to confirm the pulse widths match at center, minimum, and maximum.
+
+### Version 1 — Raw LEDC (from Lab 10)
+
+```cpp
+#include <Arduino.h>
+
+const int servoPin      = 13;
+const int pwmChannel    = 0;
+const int pwmFreqHz     = 50;
+const int pwmResolution = 16;
+const int minUs         = 500;   // replace with your calibrated values
+const int maxUs         = 2480;
+
+uint32_t usToDuty(int us) {
+  return (uint32_t)((uint64_t)us * 65536ULL * pwmFreqHz / 1000000ULL);
+}
+
+void setup() {
+  ledcSetup(pwmChannel, pwmFreqHz, pwmResolution);
+  ledcAttachPin(servoPin, pwmChannel);
+  ledcWrite(pwmChannel, usToDuty(1500));
+}
+
+void loop() {
+  int pot = analogRead(34);
+  int us  = map(pot, 0, 4095, minUs, maxUs);
+  ledcWrite(pwmChannel, usToDuty(us));
+  delay(20);
+}
+```
+
+### Version 2 — ESP32Servo library
+
+```cpp
+#include <Arduino.h>
+#include <ESP32Servo.h>
+
+const int servoPin = 13;
+const int minUs    = 500;   // same calibrated values as above
+const int maxUs    = 2480;
+
+Servo steering;
+
+void setup() {
+  steering.attach(servoPin, minUs, maxUs);
+  steering.writeMicroseconds(1500);
+}
+
+void loop() {
+  int pot = analogRead(34);
+  int us  = map(pot, 0, 4095, minUs, maxUs);
+  steering.writeMicroseconds(us);
+  delay(20);
+}
+```
+
+Measure the pulse width on the oscilloscope at pot minimum, center, and maximum for both versions. Record in the table:
+
+| Position | Raw LEDC pulse (µs) | Library pulse (µs) | Match? |
+|---|---|---|---|
+| Minimum (pot = 0) | | | |
+| Center (pot = 2048) | | | |
+| Maximum (pot = 4095) | | | |
+
+## Part C — Modular Structure
+
+Now restructure the library version into separate files. Create the following in your `src/` folder:
+
+**`src/servo_control.h`**
+
+```cpp
+#pragma once
+#include <ESP32Servo.h>
+
+// Use your calibrated min/max from Lab 10
+const int SERVO_PIN = 13;
+const int SERVO_MIN_US = 500;
+const int SERVO_MAX_US = 2480;
+const int SERVO_CENTER_US = (SERVO_MIN_US + SERVO_MAX_US) / 2;
+
+Servo steeringServo;
+
+void servoSetup() {
+  steeringServo.attach(SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
+  steeringServo.writeMicroseconds(SERVO_CENTER_US);
+}
+
+// angle: -90 to +90 degrees (full DS3218-270 range)
+// Maps to minUs..maxUs automatically
+void setSteering(int angle) {
+  angle = constrain(angle, -90, 90);
+  int us = map(angle, -90, 90, SERVO_MIN_US, SERVO_MAX_US);
+  steeringServo.writeMicroseconds(us);
+}
+```
+
+**`src/main.cpp`**
+
+```cpp
+#include <Arduino.h>
+#include "servo_control.h"
+
+void setup() {
+  Serial.begin(115200);
+  servoSetup();
+  Serial.println("Servo ready");
+}
+
+void loop() {
+  int pot = analogRead(34);
+  // Map pot to -90..+90 degrees
+  int angle = map(pot, 0, 4095, -90, 90);
+  setSteering(angle);
+  delay(20);
+}
+```
+
+Verify that this behaves identically to Part B.
+
+::: {.callout-tip}
+**Why `-90` to `+90`?** Thinking in degrees makes the calling code readable and matches the physical servo range. When you later receive a steering command over ESP-NOW or WebSocket, you can send an angle directly — the servo module handles the conversion to pulse width internally. `setSteering(-45)` is far clearer than `ledcWrite(0, usToDuty(833))`.
+:::
+
+## Questions
+
+1. From your oscilloscope measurements in Part B: is there any measurable difference between the raw LEDC version and the library version? What does this tell you about what the library actually does?
+2. In `setSteering()`, the angle is constrained to ±90° before the `map()`. What would happen without the `constrain()` call if the input exceeded the range?
+3. `servo_control.h` reserves LEDC channel 0 internally (via the library). Why is it important that `motor_control.h` in Lab 12 uses different channel numbers?
+
+## Submission
+
+Write a short lab report in Quarto following the [Report Writing Guide](../01_Fundamentals/01_Report_Writing_Guide.qmd). Include:
+
+- Your oscilloscope comparison table from Part B
+- A brief explanation of the folder structure you created
+- A photo or video of the servo and motor responding to the two potentiometers simultaneously
+- Answers to the questions
+
+Render to PDF and upload.

@@ -1,0 +1,31 @@
+---
+canvas:
+  published: true
+  type: page
+title: 'Motor and Servo'
+---
+
+## Where we are
+
+In the previous module you built an H-bridge from discrete MOSFETs (Labs 8–9). That exercise was intentional — understanding *why* an H-bridge works, what shoot-through is, and why dead-time matters, is essential background. But a hand-built discrete H-bridge is fragile, component-hungry, and takes up half a breadboard.
+
+**From this module onward we use the BTS7960 integrated motor driver.** It contains all four MOSFETs, the level shifters, shoot-through protection, dead-time generation, and current sensing in a single IC. What took a full breadboard in Lab 9 is now one module.
+
+## What we cover
+
+This module has four labs:
+
+| Lab | Topic |
+|---|---|
+| **Lab 10** | Servo motor — theory, signal format, calibration |
+| **Lab 11** | Servo library and modular code structure |
+| **Lab 12** | Brushed DC motor with the BTS7960 driver |
+| **Lab 13** | Battery voltage sensing with a voltage divider |
+
+## Why servo first?
+
+The servo is a self-contained, forgiving actuator — it has its own controller inside and only needs a PWM signal. Starting here lets you practice the LEDC peripheral and get comfortable with the oscilloscope on a clean, easy-to-observe signal before dealing with the higher currents and inductance of the brushed motor.
+
+The servo will also become the **steering actuator** in the RC car project, so calibrating it correctly now pays off later.
+
+Lab 11 then focuses on structuring the code so that servo control, motor control, and wireless communication can all coexist without turning into spaghetti — an investment that pays off directly in the project phase.
